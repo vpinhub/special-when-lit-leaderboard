@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Encode+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Encode Sans', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #leaderboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .leaderboard-item:hover {
+            transform: scale(1.02);
+        }
+        .rank {
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 15px;
+            color: #555;
+            width: 40px;
+            text-align: center;
+        }
+        .avatar {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+            object-fit: cover;
+            background-color: #e0e0e0;
+        }
+        .player-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .player-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .player-score {
+            font-weight: bold;
+            font-size: 20px;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Pinball Leaderboard</h1>
+    <div id="leaderboard-container">
+        </div>
+
+    <script>
+        const targetUrl = "https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=1011";
+        const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+        const imageBaseUrl = "img/";
+
+        async function fetchAndDisplayLeaderboard() {
+            try {
+                const response = await fetch(proxiedUrl);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                
+                const data = await response.json();
+
+                const allScores = data.flatMap(game => 
+                    game.scores.map(score => ({
+                        name: score.name,
+                        score: score.score,
+                        game: game.longName
+                    }))
+                );
+                
+                const playerHighScores = {};
+                allScores.forEach(player => {
+                    const currentScore = parseInt(player.score, 10);
+                    if (!playerHighScores[player.name] || currentScore > playerHighScores[player.name].score) {
+                        playerHighScores[player.name] = {
+                            name: player.name,
+                            score: currentScore
+                        };
+                    }
+                });
+
+                const sortedPlayers = Object.values(playerHighScores).sort((a, b) => b.score - a.score);
+
+                buildLeaderboardView(sortedPlayers);
+
+            } catch (error) {
+                console.error("Failed to load leaderboard:", error);
+                const container = document.getElementById("leaderboard-container");
+                container.innerHTML = `<p>Failed to load scores.</p>`;
+            }
+        }
+
+        function buildLeaderboardView(players) {
+            const container = document.getElementById("leaderboard-container");
+            container.innerHTML = "";
+
+            players.forEach((player, index) => {
+                const item = document.createElement('div');
+                item.classList.add('leaderboard-item');
+
+                const rank = `<span class="rank">#${index + 1}</span>`;
+                
+                // **FIX APPLIED HERE:** Convert the player name to lowercase
+                const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
+                const avatarUrl = imageBaseUrl + avatarFileName;
+                
+                const avatar = `<img src="${avatarUrl}" alt="${player.name}" class="avatar" onerror="this.style.display='none'">`;
+
+                item.innerHTML = `
+                    ${rank}
+                    ${avatar}
+                    <div class="player-details">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-score">${player.score.toLocaleString()}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchAndDisplayLeaderboard);
+    </script>
+
+</body>
+</html>
