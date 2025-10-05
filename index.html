@@ -76,7 +76,6 @@
     <script>
         const targetUrl = "https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=1011";
         const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-        // **UPDATED:** Changed to a local relative path
         const imageBaseUrl = "img/";
 
         async function fetchAndDisplayLeaderboard() {
@@ -126,7 +125,8 @@
 
                 const rank = `<span class="rank">#${index + 1}</span>`;
                 
-                const avatarFileName = `${player.name.replace(/\s+/g, '_')}.gif`;
+                // **FIX APPLIED HERE:** Convert the player name to lowercase
+                const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
                 const avatarUrl = imageBaseUrl + avatarFileName;
                 
                 const avatar = `<img src="${avatarUrl}" alt="${player.name}" class="avatar" onerror="this.style.display='none'">`;
