@@ -32,12 +32,16 @@
         .score-details {
             flex: 1;
             text-align: left;
+            min-width: 0; /* <-- FIX 1: Allows this container to shrink */
         }
         .username {
             font-size: 18px;
-            /* font-weight: 600; was removed from here */
             color: #333;
             margin-bottom: 3px;
+            /* FIX 2: Gracefully handle names that are too long */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .score {
             font-weight: bold;
