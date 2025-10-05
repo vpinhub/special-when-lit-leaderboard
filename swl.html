@@ -32,16 +32,7 @@
         .score-details {
             flex: 1;
             text-align: left;
-            min-width: 0; /* <-- FIX 1: Allows this container to shrink */
-        }
-        .username {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 3px;
-            /* FIX 2: Gracefully handle names that are too long */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            min-width: 0; 
         }
         .score {
             font-weight: bold;
@@ -93,7 +84,8 @@
 
                 buildLeaderboardView(sortedPlayers);
 
-            } catch (error) {
+            } catch (error)
+ {
                 console.error("Failed to load leaderboard:", error);
                 const container = document.getElementById("leaderboard-container");
                 container.innerHTML = `<p>Failed to load scores.</p>`;
