@@ -35,7 +35,7 @@
         }
         .username {
             font-size: 18px;
-            font-weight: 600;
+            /* font-weight: 600; was removed from here */
             color: #333;
             margin-bottom: 3px;
         }
@@ -109,7 +109,6 @@
                 
                 const avatar = `<img src="${avatarUrl}" alt="${player.name}" class="avatar" onerror="this.style.display='none'">`;
 
-                // The rank element has been removed from this structure
                 item.innerHTML = `
                     ${avatar}
                     <div class="score-details">
