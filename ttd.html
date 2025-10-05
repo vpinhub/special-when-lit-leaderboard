@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Encode+Sans&display=swap" rel="stylesheet">
     <style>
         body {
@@ -10,58 +11,37 @@
             margin: 0;
             padding: 20px;
         }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        #leaderboard-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
         .leaderboard-item {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
+            background: white;
+            padding: 10px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out;
-        }
-        .leaderboard-item:hover {
-            transform: scale(1.02);
-        }
-        .rank {
-            font-weight: bold;
-            font-size: 20px;
-            margin-right: 15px;
-            color: #555;
-            width: 40px;
-            text-align: center;
         }
         .avatar {
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            margin-right: 15px;
+            margin-right: 10px;
             object-fit: cover;
             background-color: #e0e0e0;
         }
-        .player-details {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+        .score-details {
+            flex: 1;
+            text-align: left;
         }
-        .player-name {
+        .username {
             font-size: 18px;
             font-weight: 600;
             color: #333;
             margin-bottom: 3px;
         }
-        .player-score {
+        .score {
             font-weight: bold;
-            font-size: 20px;
+            font-size: 18px;
             color: black;
         }
     </style>
@@ -74,6 +54,10 @@
         const targetUrl = "https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=700";
         const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
         const imageBaseUrl = "img/";
+
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
 
         async function fetchAndDisplayLeaderboard() {
             try {
@@ -114,26 +98,23 @@
 
         function buildLeaderboardView(players) {
             const container = document.getElementById("leaderboard-container");
-            container.innerHTML = "";
+            container.innerHTML = ""; 
 
-            players.forEach((player, index) => {
+            players.forEach((player) => {
                 const item = document.createElement('div');
                 item.classList.add('leaderboard-item');
-
-                const rank = `<span class="rank">#${index + 1}</span>`;
                 
-                // **FIX APPLIED HERE:** Convert the player name to lowercase
                 const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
                 const avatarUrl = imageBaseUrl + avatarFileName;
                 
                 const avatar = `<img src="${avatarUrl}" alt="${player.name}" class="avatar" onerror="this.style.display='none'">`;
 
+                // The rank element has been removed from this structure
                 item.innerHTML = `
-                    ${rank}
                     ${avatar}
-                    <div class="player-details">
-                        <div class="player-name">${player.name}</div>
-                        <div class="player-score">${player.score.toLocaleString()}</div>
+                    <div class="score-details">
+                        <div class="username">${player.name}</div>
+                        <div class="score">${formatNumber(player.score)}</div>
                     </div>
                 `;
                 container.appendChild(item);
@@ -142,6 +123,5 @@
 
         document.addEventListener('DOMContentLoaded', fetchAndDisplayLeaderboard);
     </script>
-
 </body>
 </html>
