@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Encode+Sans&display=swap" rel="stylesheet">
+    <title>Leaderboard Overlay</title>
+    <style>
+        /* CSS Variables */
+        :root {
+            --color-neutral-900: oklch(0.185 0 0);
+            color-scheme: light dark;
+        }
+
+        /* Base and Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Set body to transparent for OBS overlay */
+        body {
+            font-family: 'Encode Sans', sans-serif;
+            background-color: transparent;
+            color: oklch(0.985 0 0);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* SVG definitions must be present but can be hidden */
+        .svg-container {
+            position: absolute;
+            height: 0;
+            width: 0;
+        }
+
+        /* Card container FOR THE ENTIRE LEADERBOARD */
+        .card-container {
+            padding: 2px;
+            border-radius: 1.5em;
+            position: relative;
+            background: linear-gradient(-30deg,
+                    var(--gradient-color),
+                    transparent,
+                    var(--gradient-color)),
+                linear-gradient(to bottom,
+                    rgba(24, 24, 27, 0.7), /* Semi-transparent dark background */
+                    rgba(24, 24, 27, 0.7));
+            -webkit-backdrop-filter: blur(10px); /* Frosted glass effect */
+            backdrop-filter: blur(10px);
+            width: 50rem; /* Adjust width as needed */
+            max-width: 90vw;
+        }
+
+        /* Electric border effect definition */
+        .card-container[data-effect="electric"] {
+            --f: url(#🌀↖️);
+            --electric-border-color: #dd8448; /* Orange-ish color */
+            --electric-light-color: oklch(from var(--electric-border-color) l c h);
+            --gradient-color: oklch(from var(--electric-border-color) 0.3 calc(c / 2) h / 0.4);
+        }
+        
+        /* Inner container and border layers */
+        .inner-container, .border-outer, .main-card, .glow-layer-1, .glow-layer-2, .overlay-1, .overlay-2, .background-glow {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 1.5em;
+        }
+
+        .border-outer {
+            border: 2px solid oklch(from var(--electric-border-color) l c h / 0.5);
+            position: relative; /* Needed for main-card positioning */
+        }
+
+        .main-card {
+            border: 2px solid var(--electric-border-color);
+            margin-top: -2px;
+            margin-left: -2px;
+            filter: var(--f);
+        }
+
+        /* Glow effects */
+        .glow-layer-1 {
+            border: 2px solid oklch(from var(--electric-border-color) l c h / 0.6);
+            filter: blur(1px);
+        }
+
+        .glow-layer-2 {
+            border: 2px solid var(--electric-light-color);
+            filter: blur(4px);
+        }
+
+        /* Overlay effects */
+        .overlay-1,
+        .overlay-2 {
+            mix-blend-mode: overlay;
+            transform: scale(1.1);
+            filter: blur(16px);
+            background: linear-gradient(-30deg,
+                    white,
+                    transparent 30%,
+                    transparent 70%,
+                    white);
+        }
+        .overlay-1 { opacity: 1; }
+        .overlay-2 { opacity: 0.5; }
+
+        /* Background glow */
+        .background-glow {
+            filter: blur(32px);
+            transform: scale(1.1);
+            opacity: 0.3;
+            z-index: -1;
+            background: linear-gradient(-30deg,
+                    var(--electric-light-color),
+                    transparent,
+                    var(--electric-border-color));
+        }
+
+        /* Content container for leaderboard items */
+        #leaderboard-container {
+            position: relative; /* Ensures content appears above border layers */
+            z-index: 10;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between player rows */
+        }
+        
+        /* Individual player row styling */
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .rank {
+            font-weight: bold;
+            font-size: 22px;
+            margin-right: 15px;
+            color: #fff;
+            width: 50px;
+            text-align: center;
+        }
+
+        .avatar {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            margin-right: 20px;
+            object-fit: cover;
+            background-color: #333;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .player-details {
+            flex-grow: 1;
+        }
+
+        .player-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .player-score {
+            font-weight: bold;
+            font-size: 22px;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <svg class="svg-container">
+        <defs>
+            <filter id="🌀↖️" colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
+                <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="1" />
+                <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
+                    <animate attributeName="dy" values="700; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                </feOffset>
+                <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="1" />
+                <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
+                    <animate attributeName="dy" values="0; -700" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                </feOffset>
+                <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="2" />
+                <feOffset in="noise1" dx="0" dy="0" result="offsetNoise3">
+                    <animate attributeName="dx" values="490; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                </feOffset>
+                <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="2" />
+                <feOffset in="noise2" dx="0" dy="0" result="offsetNoise4">
+                    <animate attributeName="dx" values="0; -490" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                </feOffset>
+                <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />
+                <feComposite in="offsetNoise3" in2="offsetNoise4" result="part2" />
+                <feBlend in="part1" in2="part2" mode="color-dodge" result="combinedNoise" />
+                <feDisplacementMap in="SourceGraphic" in2="combinedNoise" scale="30" xChannelSelector="R" yChannelSelector="B" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div class="card-container" data-effect="electric">
+        <div class="inner-container">
+            <div class="border-outer">
+                <div class="main-card"></div>
+            </div>
+            <div class="glow-layer-1"></div>
+            <div class="glow-layer-2"></div>
+        </div>
+        <div class="overlay-1"></div>
+        <div class="overlay-2"></div>
+        <div class="background-glow"></div>
+        
+        <div id="leaderboard-container">
+            <p style="text-align: center; font-size: 24px;">Loading Scores...</p>
+        </div>
+    </div>
+
+
+    <script>
+        const targetUrl = "https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=1011";
+        const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+        const imageBaseUrl = "img/";
+
+        async function fetchAndDisplayLeaderboard() {
+            try {
+                const response = await fetch(proxiedUrl);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const data = await response.json();
+
+                const allScores = data.flatMap(game =>
+                    game.scores.map(score => ({
+                        name: score.name,
+                        score: score.score,
+                        game: game.longName
+                    }))
+                );
+
+                const playerHighScores = {};
+                allScores.forEach(player => {
+                    const currentScore = parseInt(player.score, 10);
+                    if (!playerHighScores[player.name] || currentScore > playerHighScores[player.name].score) {
+                        playerHighScores[player.name] = {
+                            name: player.name,
+                            score: currentScore
+                        };
+                    }
+                });
+
+                const sortedPlayers = Object.values(playerHighScores).sort((a, b) => b.score - a.score);
+
+                buildLeaderboardView(sortedPlayers);
+
+            } catch (error) {
+                console.error("Failed to load leaderboard:", error);
+                const container = document.getElementById("leaderboard-container");
+                container.innerHTML = `<p style="color: white; font-size: 24px;">Failed to load scores.</p>`;
+            }
+        }
+
+        function buildLeaderboardView(players) {
+            const container = document.getElementById("leaderboard-container");
+            container.innerHTML = ""; // Clear previous entries (including loading text)
+
+            players.forEach((player, index) => {
+                const item = document.createElement('div');
+                item.classList.add('leaderboard-item');
+
+                const playerRank = index + 1;
+                const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
+                const avatarUrl = imageBaseUrl + avatarFileName;
+
+                // This is the new, simpler HTML structure for each player row
+                item.innerHTML = `
+                    <span class="rank">#${playerRank}</span>
+                    <img src="${avatarUrl}" alt="${player.name}" class="avatar" onerror="this.style.display='none'">
+                    <div class="player-details">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-score">${player.score.toLocaleString()}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchAndDisplayLeaderboard);
+        
+        // Refresh the scores every 30 seconds
+        setInterval(fetchAndDisplayLeaderboard, 30000);
+    </script>
+</body>
+</html>
