@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TTD Leaderboard & Achievements</title>
+  <title>TTD Leaderboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Encode+Sans&family=MedievalSharp&display=swap" rel="stylesheet">
   <style>
       body {
@@ -14,77 +14,46 @@
           color: white;
           text-shadow: 1px 1px 4px black;
           text-align: center;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
       }
+
       .header-image {
           display: block;
-          margin: 0 auto;
+          margin: 0 auto 10px;
           width: 75%;
           max-width: 250px;
       }
-      
-      /* Achievement Section */
-      .achievements-container {
-          display: flex;
-          justify-content: center;
+
+      h1 { color: #ddd; text-shadow: 2px 2px 6px rgba(0,0,0,0.5); margin: 5px 0; }
+
+      /* Horizontal Grid Layout (1, 2, 3 / 4, 5, 6) */
+      .leaderboard-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
           gap: 15px;
-          margin: 20px auto;
-          flex-wrap: wrap;
           max-width: 1000px;
-      }
-      .achievement-card {
-          background: rgba(241, 196, 15, 0.2);
-          border: 2px solid #f1c40f;
-          border-radius: 12px;
-          padding: 10px 20px;
-          min-width: 200px;
-          backdrop-filter: blur(5px);
-      }
-      .achievement-title {
-          font-family: 'MedievalSharp', cursive;
-          color: #f1c40f;
-          font-size: 18px;
-          margin-bottom: 5px;
-      }
-      .achievement-winner {
-          font-weight: bold;
-          font-size: 20px;
+          margin: 20px auto;
+          width: 100%;
       }
 
-      /* Columns */
-      .columns {
-          display: flex;
-          justify-content: center;
-          gap: 20px;
-          margin-top: 10px;
-      }
-      .column {
-          flex: 1;
-          max-width: 300px;
-      }
-      
-      /* Items */
       .leaderboard-item {
           display: flex;
           align-items: center;
-          margin-bottom: 10px;
           background: rgba(255, 255, 255, 0.85);
           padding: 10px;
           border-radius: 8px;
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
           color: #2c3e50;
-          transition: transform 0.3s ease;
       }
 
-      /* Highlight First Place */
       .leaderboard-item.first-place {
           background: linear-gradient(135deg, #fff9e6 0%, #f1c40f 100%);
           border: 3px solid #d4af37;
-          transform: scale(1.05);
+          transform: scale(1.03);
           box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
-          z-index: 5;
       }
-      .first-place .rank { color: #8e44ad; font-size: 24px; }
-      .first-place .score { font-size: 22px; }
 
       .avatar {
           border-radius: 50%;
@@ -95,30 +64,59 @@
           object-fit: cover;
           background-color: #ddd;
       }
-      .score-details { flex: 1; text-align: left; }
-      .rank { font-weight: bold; margin-right: 10px; color: #1f3a93; min-width: 25px; }
-      .username { font-weight: 600; font-size: 16px; }
+
+      .score-details { flex: 1; text-align: left; overflow: hidden; }
+      .rank { font-weight: bold; margin-right: 8px; color: #1f3a93; min-width: 25px; }
+      .username { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .score { font-weight: bold; font-size: 18px; color: black; }
-      
-      h1, h2 { color: #ddd; text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5); margin: 10px 0; }
-      #date { font-family: 'MedievalSharp', cursive; font-size: 24px; color: #f1c40f; }
+
+      /* Footer Area */
+      #date { 
+          font-family: 'MedievalSharp', cursive; 
+          font-size: 24px; 
+          color: #f1c40f; 
+          margin: 20px 0;
+      }
+
+      .achievements-container {
+          display: flex;
+          justify-content: center;
+          gap: 15px;
+          margin-top: auto;
+          padding-top: 20px;
+          flex-wrap: wrap;
+      }
+
+      .achievement-card {
+          background: rgba(241, 196, 15, 0.15);
+          border: 2px solid #f1c40f;
+          border-radius: 12px;
+          padding: 10px 20px;
+          min-width: 220px;
+          backdrop-filter: blur(5px);
+      }
+
+      .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 16px; }
+      .achievement-winner { font-weight: bold; font-size: 19px; }
+
+      /* Responsive for small screens */
+      @media (max-width: 768px) {
+          .leaderboard-grid { grid-template-columns: 1fr; }
+      }
   </style>
 </head>
 <body>
+
     <img src="https://iscored.info/images/games/game87385" alt="Charlie Brown logo" class="header-image">
-    
+    <h1>A Charlie Brown Christmas (Original 2023)</h1>
+
+    <div class="leaderboard-grid" id="leaderboard">
+        </div>
+
     <h2 id="date"></h2>
 
     <div class="achievements-container" id="achievements">
         </div>
-
-    <div class="columns">
-        <div class="column" id="column-1"></div>
-        <div class="column" id="column-2"></div>
-        <div class="column" id="column-3"></div>
-    </div>
-
-    <h1>A Charlie Brown Christmas (Original 2023)</h1>
 
   <script>
     document.getElementById('date').textContent = new Date().toLocaleDateString();
@@ -132,7 +130,7 @@
             const response = await fetch(proxiedUrl);
             const data = await response.json();
 
-            const stats = {}; // To track all scores per player
+            const stats = {}; 
             
             data.forEach(game => {
                 if (game.scores && Array.isArray(game.scores)) {
@@ -150,63 +148,61 @@
 
             const playerList = Object.values(stats);
 
-            // 1. Calculate Achievements
+            // Achievements calculations
             const mostImproved = [...playerList].sort((a, b) => (b.high - b.low) - (a.high - a.low))[0];
             const mostSubmissions = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
 
-            // 2. Sort for Leaderboard
+            // Leaderboard Sort
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
 
+            renderLeaderboard(sortedPlayers);
             renderAchievements(mostImproved, mostSubmissions);
-            renderToColumns(sortedPlayers);
 
         } catch (error) {
             console.error("Error:", error);
         }
     }
 
-    function renderAchievements(improved, grinder) {
-        const container = document.getElementById('achievements');
-        container.innerHTML = `
-            <div class="achievement-card">
-                <div class="achievement-title">📈 Most Improved</div>
-                <div class="achievement-winner">${improved ? improved.name : '---'}</div>
-                <div style="font-size:12px">+${(improved.high - improved.low).toLocaleString()} pts</div>
-            </div>
-            <div class="achievement-card">
-                <div class="achievement-title">🕹️ Most Scores Submitted</div>
-                <div class="achievement-winner">${grinder ? grinder.name : '---'}</div>
-                <div style="font-size:12px">${grinder.scores.length} games played</div>
-            </div>
-        `;
-    }
-
-    function renderToColumns(players) {
-        const colIds = ['column-1', 'column-2', 'column-3'];
-        const playersPerColumn = Math.ceil(players.length / colIds.length);
-        colIds.forEach(id => document.getElementById(id).innerHTML = "");
+    function renderLeaderboard(players) {
+        const container = document.getElementById('leaderboard');
+        container.innerHTML = ""; // Clear
 
         players.forEach((player, index) => {
-            const colIndex = Math.floor(index / playersPerColumn);
-            const column = document.getElementById(colIds[colIndex]);
-            if (!column) return;
-
             const item = document.createElement('div');
             item.classList.add('leaderboard-item');
-            if (index === 0) item.classList.add('first-place'); // Highlight 1st
+            if (index === 0) item.classList.add('first-place');
 
+            const rank = index + 1;
             const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
             
             item.innerHTML = `
-                <div class="rank">${index === 0 ? '👑' : (index + 1) + '.'}</div>
+                <div class="rank">${index === 0 ? '👑' : rank + '.'}</div>
                 <img src="${imageBaseUrl}${avatarFileName}" class="avatar" onerror="this.style.display='none'">
                 <div class="score-details">
                     <div class="username">${player.name}</div>
                     <div class="score">${player.high.toLocaleString()}</div>
                 </div>
             `;
-            column.appendChild(item);
+            container.appendChild(item);
         });
+    }
+
+    function renderAchievements(improved, grinder) {
+        const container = document.getElementById('achievements');
+        if (!improved || !grinder) return;
+
+        container.innerHTML = `
+            <div class="achievement-card">
+                <div class="achievement-title">📈 Most Improved</div>
+                <div class="achievement-winner">${improved.name}</div>
+                <div style="font-size:12px">+${(improved.high - improved.low).toLocaleString()} pts</div>
+            </div>
+            <div class="achievement-card">
+                <div class="achievement-title">🕹️ Most Scores Submitted</div>
+                <div class="achievement-winner">${grinder.name}</div>
+                <div style="font-size:12px">${grinder.scores.length} games played</div>
+            </div>
+        `;
     }
 
     fetchAndDisplayLeaderboard();
