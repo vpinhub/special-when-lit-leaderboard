@@ -47,6 +47,8 @@
           height: 50px;
           margin-right: 10px;
           border: 2px solid #1f3a93;
+          object-fit: cover;
+          background-color: #ddd;
       }
       .score-details {
           flex: 1;
@@ -56,6 +58,14 @@
           font-weight: bold;
           margin-right: 10px;
           color: #1f3a93;
+          min-width: 25px;
+      }
+      .username {
+          font-weight: 600;
+          font-size: 16px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
       }
       .score {
           font-weight: bold;
@@ -75,7 +85,7 @@
   </style>
 </head>
 <body>
-	<img src="https://iscored.info/images/games/game87385" alt="Charlie Brown logo" class="header-image">
+    <img src="https://iscored.info/images/games/game87385" alt="Charlie Brown logo" class="header-image">
   
   <div class="columns">
       <div class="column" id="column-1"></div>
@@ -83,58 +93,92 @@
       <div class="column" id="column-3"></div>
   </div>
 
-  <h1>A Charlie Brown Christmas (Original 2023)</h2>
+  <h1>A Charlie Brown Christmas (Original 2023)</h1>
   <h2 id="date"></h2>
 
   <script>
+    // Set the current date
     document.getElementById('date').textContent = new Date().toLocaleDateString();
 
-    function formatNumber(num) {
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const targetUrl = "https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=700";
+    const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    const imageBaseUrl = "img/"; 
+
+    async function fetchAndDisplayLeaderboard() {
+        try {
+            const response = await fetch(proxiedUrl);
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.json();
+
+            // 1. Process iScored data: Flatten and find high scores per player
+            const playerHighScores = {};
+            
+            data.forEach(game => {
+                if (game.scores && Array.isArray(game.scores)) {
+                    game.scores.forEach(s => {
+                        const scoreVal = parseInt(s.score, 10);
+                        // Only keep the player's highest score found in the room
+                        if (!playerHighScores[s.name] || scoreVal > playerHighScores[s.name].score) {
+                            playerHighScores[s.name] = {
+                                name: s.name,
+                                score: scoreVal
+                            };
+                        }
+                    });
+                }
+            });
+
+            // 2. Sort players by score descending
+            const sortedPlayers = Object.values(playerHighScores).sort((a, b) => b.score - a.score);
+
+            // 3. Render to the three columns
+            renderToColumns(sortedPlayers);
+
+        } catch (error) {
+            console.error("Failed to load leaderboard:", error);
+        }
     }
 
-    function fetchLeaderboard(url, containerIds) {
-        fetch(url)
-          .then(response => response.json())
-          .then(jsonData => {
-              const playerScores = {};
-              jsonData.forEach(player => {
-                  const score = parseInt(player.score, 10);
-                  if (!playerScores[player.name] || score > playerScores[player.name].score) {
-                      playerScores[player.name] = { name: player.name, score };
-                  }
-              });
+    function renderToColumns(players) {
+        const colIds = ['column-1', 'column-2', 'column-3'];
+        const playersPerColumn = Math.ceil(players.length / colIds.length);
+        
+        // Clear columns before re-rendering
+        colIds.forEach(id => {
+            document.getElementById(id).innerHTML = "";
+        });
 
-              const sortedPlayers = Object.values(playerScores).sort((a, b) => b.score - a.score);
+        players.forEach((player, index) => {
+            // Determine which column this index belongs to
+            const colIndex = Math.floor(index / playersPerColumn);
+            const column = document.getElementById(colIds[colIndex]);
+            
+            if (!column) return; // Safety check
 
-              const playersPerColumn = Math.ceil(sortedPlayers.length / containerIds.length);
-              containerIds.forEach((id, colIndex) => {
-                  const column = document.getElementById(id);
-                  const columnPlayers = sortedPlayers.slice(colIndex * playersPerColumn, (colIndex + 1) * playersPerColumn);
+            const item = document.createElement('div');
+            item.classList.add('leaderboard-item');
 
-                  columnPlayers.forEach((player, index) => {
-                      const item = document.createElement('div');
-                      item.classList.add('leaderboard-item');
+            const rank = index + 1;
+            const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
+            const avatarUrl = imageBaseUrl + avatarFileName;
 
-                      const avatarPath = `img/${player.name.replace(/\s+/g, '_')}.gif`;
-                      const avatar = `<img src="${avatarPath}" alt="${player.name}" class="avatar" onerror="this.style.display='none'">`;
-
-                      item.innerHTML = `
-                        <div class="rank">${colIndex * playersPerColumn + index + 1}.</div>
-                        ${avatar}
-                        <div class="score-details">
-                          <div class="username">${player.name}</div>
-                          <div class="score">${formatNumber(player.score)}</div>
-                        </div>
-                      `;
-                      column.appendChild(item);
-                  });
-              });
-          })
-          .catch(error => console.error('Error fetching leaderboard data:', error));
+            item.innerHTML = `
+                <div class="rank">${rank}.</div>
+                <img src="${avatarUrl}" alt="${player.name}" class="avatar" onerror="this.style.display='none'">
+                <div class="score-details">
+                    <div class="username">${player.name}</div>
+                    <div class="score">${player.score.toLocaleString()}</div>
+                </div>
+            `;
+            column.appendChild(item);
+        });
     }
 
-    fetchLeaderboard('https://comp.pinballwizards.us/ttd/scores.json', ['column-1', 'column-2', 'column-3']);
+    // Run on load
+    fetchAndDisplayLeaderboard();
+    
+    // Auto-refresh every 30 seconds to keep scores live
+    setInterval(fetchAndDisplayLeaderboard, 30000);
   </script>
 </body>
 </html>
