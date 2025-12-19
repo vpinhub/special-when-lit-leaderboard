@@ -26,15 +26,13 @@
           max-width: 250px;
       }
 
-      h1 { color: #ddd; text-shadow: 2px 2px 6px rgba(0,0,0,0.5); margin: 5px 0; }
-
       /* Horizontal Grid Layout (1, 2, 3 / 4, 5, 6) */
       .leaderboard-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 15px;
           max-width: 1000px;
-          margin: 20px auto;
+          margin: 10px auto 30px; /* Added bottom margin to separate from title */
           width: 100%;
       }
 
@@ -70,36 +68,46 @@
       .username { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .score { font-weight: bold; font-size: 18px; color: black; }
 
-      /* Footer Area */
+      /* Footer Styling - Compact */
+      .footer-section {
+          margin-top: auto; /* Pushes everything to the bottom */
+      }
+
+      h1 { 
+          color: #ddd; 
+          text-shadow: 2px 2px 6px rgba(0,0,0,0.5); 
+          margin: 0; /* Minimized gap */
+          font-size: 28px;
+      }
+
       #date { 
           font-family: 'MedievalSharp', cursive; 
-          font-size: 24px; 
+          font-size: 22px; 
           color: #f1c40f; 
-          margin: 20px 0;
+          margin: 5px 0; /* Minimized gap */
       }
 
       .achievements-container {
           display: flex;
           justify-content: center;
           gap: 15px;
-          margin-top: auto;
-          padding-top: 20px;
+          padding-top: 10px;
           flex-wrap: wrap;
+          margin-bottom: 10px;
       }
 
       .achievement-card {
           background: rgba(241, 196, 15, 0.15);
           border: 2px solid #f1c40f;
           border-radius: 12px;
-          padding: 10px 20px;
-          min-width: 220px;
+          padding: 8px 15px;
+          min-width: 200px;
           backdrop-filter: blur(5px);
       }
 
-      .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 16px; }
-      .achievement-winner { font-weight: bold; font-size: 19px; }
+      .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 15px; }
+      .achievement-winner { font-weight: bold; font-size: 18px; }
 
-      /* Responsive for small screens */
       @media (max-width: 768px) {
           .leaderboard-grid { grid-template-columns: 1fr; }
       }
@@ -108,15 +116,17 @@
 <body>
 
     <img src="https://iscored.info/images/games/game87385" alt="Charlie Brown logo" class="header-image">
-    <h1>A Charlie Brown Christmas (Original 2023)</h1>
 
     <div class="leaderboard-grid" id="leaderboard">
         </div>
 
-    <h2 id="date"></h2>
+    <div class="footer-section">
+        <h1>A Charlie Brown Christmas (Original 2023)</h1>
+        <h2 id="date"></h2>
 
-    <div class="achievements-container" id="achievements">
-        </div>
+        <div class="achievements-container" id="achievements">
+            </div>
+    </div>
 
   <script>
     document.getElementById('date').textContent = new Date().toLocaleDateString();
@@ -147,25 +157,21 @@
             });
 
             const playerList = Object.values(stats);
-
-            // Achievements calculations
             const mostImproved = [...playerList].sort((a, b) => (b.high - b.low) - (a.high - a.low))[0];
             const mostSubmissions = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
-
-            // Leaderboard Sort
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
 
             renderLeaderboard(sortedPlayers);
             renderAchievements(mostImproved, mostSubmissions);
 
         } catch (error) {
-            console.error("Error:", error);
+            console.error("Error fetching data:", error);
         }
     }
 
     function renderLeaderboard(players) {
         const container = document.getElementById('leaderboard');
-        container.innerHTML = ""; // Clear
+        container.innerHTML = ""; 
 
         players.forEach((player, index) => {
             const item = document.createElement('div');
