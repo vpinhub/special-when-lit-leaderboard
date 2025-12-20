@@ -92,7 +92,7 @@
           display: flex;
           justify-content: center;
           gap: 10px;
-          padding-top: 10px; /* Space between date and cards */
+          padding-top: 10px;
           flex-wrap: wrap;
           margin-bottom: 5px;
       }
@@ -115,13 +115,21 @@
           animation: subtleGlow 2s infinite alternate;
       }
 
+      /* Nuclear Green style for Mr. Burns */
+      .burns-card {
+          background: linear-gradient(135deg, #aaff00 0%, #008000 100%);
+          border: 1px solid #0f0;
+          color: #fff;
+          box-shadow: 0 0 10px #7fff00;
+      }
+
       @keyframes subtleGlow {
           from { box-shadow: 0 0 5px gold; }
           to { box-shadow: 0 0 15px #ffcc00; }
       }
 
       .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 12px; }
-      .billionaire-card .achievement-title { color: #222; }
+      .billionaire-card .achievement-title, .burns-card .achievement-title { color: #fff; text-shadow: 1px 1px 2px black; }
       .achievement-winner { font-weight: bold; font-size: 15px; }
 
       @media (max-width: 768px) {
@@ -169,13 +177,18 @@
             });
 
             const playerList = Object.values(stats);
+            if (playerList.length === 0) return;
+
             const mostImproved = [...playerList].sort((a, b) => (b.high - b.low) - (a.high - a.low))[0];
             const mostSubmissions = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
             const billionaires = playerList.filter(p => p.high >= 1000000000);
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
+            
+            // PICK A RANDOM PLAYER FOR THE BURNS AWARD
+            const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
 
             renderLeaderboard(sortedPlayers);
-            renderAchievements(mostImproved, mostSubmissions, billionaires);
+            renderAchievements(mostImproved, mostSubmissions, billionaires, randomPlayer);
 
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -190,7 +203,6 @@
             item.classList.add('leaderboard-item');
             if (index === 0) item.classList.add('first-place');
             
-            // Safe Name logic: trim, lowercase, and replace spaces with underscores
             const safeName = player.name.trim().toLowerCase().replace(/\s+/g, '_');
             const avatarFileName = `${safeName}.gif`;
             
@@ -206,7 +218,7 @@
         });
     }
 
-    function renderAchievements(improved, grinder, billionaires) {
+    function renderAchievements(improved, grinder, billionaires, luckyWinner) {
         const container = document.getElementById('achievements');
         if (!improved || !grinder) return;
 
@@ -222,6 +234,17 @@
                 <div style="font-size:11px">${grinder.scores.length} games</div>
             </div>
         `;
+
+        // The Random Burns Award
+        if (luckyWinner) {
+            html += `
+                <div class="achievement-card burns-card">
+                    <div class="achievement-title">☢️ C. Montgomery Burns Award</div>
+                    <div class="achievement-winner">${luckyWinner.name}</div>
+                    <div style="font-size:11px">Excellent!</div>
+                </div>
+            `;
+        }
 
         if (billionaires && billionaires.length > 0) {
             billionaires.forEach(b => {
