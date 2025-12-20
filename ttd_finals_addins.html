@@ -9,7 +9,7 @@
       body {
           font-family: 'Encode Sans', sans-serif;
           margin: 0;
-          padding: 10px; /* Reduced padding */
+          padding: 10px;
           background: linear-gradient(to bottom, #6c7a89, #2c3e50);
           color: white;
           text-shadow: 1px 1px 4px black;
@@ -17,31 +17,30 @@
           min-height: 100vh;
           display: flex;
           flex-direction: column;
-          align-items: center; /* Center content horizontally */
+          align-items: center;
       }
 
       .header-image {
           display: block;
-          margin: 0 auto 5px; /* Tighter margin */
+          margin: 0 auto 5px;
           width: 60%;
-          max-width: 180px; /* Smaller logo for more space */
+          max-width: 180px;
       }
 
       .leaderboard-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 10px; /* Reduced gap */
+          gap: 10px;
           max-width: 900px;
           margin: 5px auto; 
           width: 100%;
-          /* Removed flex-grow to prevent stretching */
       }
 
       .leaderboard-item {
           display: flex;
           align-items: center;
           background: rgba(255, 255, 255, 0.85);
-          padding: 6px 10px; /* Compact padding */
+          padding: 6px 10px;
           border-radius: 6px;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
           color: #2c3e50;
@@ -56,7 +55,7 @@
 
       .avatar {
           border-radius: 50%;
-          width: 40px; /* Smaller avatars */
+          width: 40px;
           height: 40px;
           margin-right: 8px;
           border: 2px solid #1f3a93;
@@ -70,7 +69,7 @@
       .score { font-weight: bold; font-size: 16px; color: black; line-height: 1; }
 
       .footer-section {
-          margin-top: 10px; /* Small gap instead of auto-push */
+          margin-top: 10px;
           width: 100%;
       }
 
@@ -78,7 +77,7 @@
           color: #ddd; 
           text-shadow: 2px 2px 6px rgba(0,0,0,0.5); 
           margin: 0;
-          font-size: 22px; /* Smaller title */
+          font-size: 22px;
       }
 
       #date { 
@@ -92,7 +91,7 @@
           display: flex;
           justify-content: center;
           gap: 10px;
-          padding-top: 5px;
+          padding-top: 10px; /* Space between date and cards */
           flex-wrap: wrap;
           margin-bottom: 5px;
       }
@@ -130,9 +129,9 @@
     <div class="leaderboard-grid" id="leaderboard"></div>
 
     <div class="footer-section">
-        <div class="achievements-container" id="achievements"></div>
         <h1>Jurassic Park (Data East 1993)</h1>
         <h2 id="date"></h2>
+        <div class="achievements-container" id="achievements"></div>
     </div>
 
   <script>
@@ -183,8 +182,13 @@
             const item = document.createElement('div');
             item.classList.add('leaderboard-item');
             if (index === 0) item.classList.add('first-place');
+            
             const rank = index + 1;
-            const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
+            
+            // Fixed filename logic to handle spaces and case
+            const safeName = player.name.trim().toLowerCase().replace(/\s+/g, '_');
+            const avatarFileName = `${safeName}.gif`;
+            
             item.innerHTML = `
                 <div class="rank">${index === 0 ? '👑' : rank + '.'}</div>
                 <img src="${imageBaseUrl}${avatarFileName}" class="avatar" onerror="this.style.display='none'">
