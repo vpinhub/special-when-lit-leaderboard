@@ -26,14 +26,14 @@
           max-width: 250px;
       }
 
-      /* Horizontal Grid Layout (1, 2, 3 / 4, 5, 6) */
       .leaderboard-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 15px;
           max-width: 1000px;
-          margin: 10px auto 30px; /* Added bottom margin to separate from title */
+          margin: 10px auto; 
           width: 100%;
+          flex-grow: 1; /* This fills the empty space so footer stays down */
       }
 
       .leaderboard-item {
@@ -44,6 +44,7 @@
           border-radius: 8px;
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
           color: #2c3e50;
+          height: fit-content;
       }
 
       .leaderboard-item.first-place {
@@ -68,15 +69,15 @@
       .username { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .score { font-weight: bold; font-size: 18px; color: black; }
 
-      /* Footer Styling - Compact */
       .footer-section {
-          margin-top: auto; /* Pushes everything to the bottom */
+          margin-top: auto; /* Pushes the entire section to the bottom */
+          padding-top: 20px;
       }
 
       h1 { 
           color: #ddd; 
           text-shadow: 2px 2px 6px rgba(0,0,0,0.5); 
-          margin: 0; /* Minimized gap */
+          margin: 0;
           font-size: 28px;
       }
 
@@ -84,7 +85,7 @@
           font-family: 'MedievalSharp', cursive; 
           font-size: 22px; 
           color: #f1c40f; 
-          margin: 5px 0; /* Minimized gap */
+          margin: 5px 0;
       }
 
       .achievements-container {
@@ -105,6 +106,16 @@
           backdrop-filter: blur(5px);
       }
 
+      /* Special Billionaire Styling */
+      .billionaire-card {
+          background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+          border: 2px solid #fff;
+          color: #000;
+          text-shadow: none;
+          box-shadow: 0 0 15px gold;
+      }
+      .billionaire-card .achievement-title { color: #333; font-weight: bold; }
+
       .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 15px; }
       .achievement-winner { font-weight: bold; font-size: 18px; }
 
@@ -115,17 +126,15 @@
 </head>
 <body>
 
-    <img src="https://iscored.info/community/images/games/game3056" alt="Jurassic Park Logo logo" class="header-image">
+    <img src="https://iscored.info/community/images/games/game3056" alt="Jurassic Park Logo" class="header-image">
 
-    <div class="leaderboard-grid" id="leaderboard">
-        </div>
+    <div class="leaderboard-grid" id="leaderboard"></div>
 
     <div class="footer-section">
         <h1>Jurassic Park (Data East 1993)</h1>
         <h2 id="date"></h2>
 
-        <div class="achievements-container" id="achievements">
-            </div>
+        <div class="achievements-container" id="achievements"></div>
     </div>
 
   <script>
@@ -159,10 +168,14 @@
             const playerList = Object.values(stats);
             const mostImproved = [...playerList].sort((a, b) => (b.high - b.low) - (a.high - a.low))[0];
             const mostSubmissions = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
+            
+            // Find Billionaires
+            const billionaires = playerList.filter(p => p.high >= 1000000000);
+            
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
 
             renderLeaderboard(sortedPlayers);
-            renderAchievements(mostImproved, mostSubmissions);
+            renderAchievements(mostImproved, mostSubmissions, billionaires);
 
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -193,11 +206,11 @@
         });
     }
 
-    function renderAchievements(improved, grinder) {
+    function renderAchievements(improved, grinder, billionaires) {
         const container = document.getElementById('achievements');
         if (!improved || !grinder) return;
 
-        container.innerHTML = `
+        let html = `
             <div class="achievement-card">
                 <div class="achievement-title">📈 Most Improved</div>
                 <div class="achievement-winner">${improved.name}</div>
@@ -209,6 +222,21 @@
                 <div style="font-size:12px">${grinder.scores.length} games played</div>
             </div>
         `;
+
+        // Add Billionaire Club if anyone qualifies
+        if (billionaires && billionaires.length > 0) {
+            billionaires.forEach(b => {
+                html += `
+                    <div class="achievement-card billionaire-card">
+                        <div class="achievement-title">💰 Billion Points Club</div>
+                        <div class="achievement-winner">${b.name}</div>
+                        <div style="font-size:12px">Elite Tier Unlocked</div>
+                    </div>
+                `;
+            });
+        }
+
+        container.innerHTML = html;
     }
 
     fetchAndDisplayLeaderboard();
