@@ -27,7 +27,6 @@
           max-width: 180px;
       }
 
-      /* Grid follows content size instead of forcing stretch */
       .leaderboard-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -70,7 +69,7 @@
       .score { font-weight: bold; font-size: 16px; color: black; line-height: 1; }
 
       .footer-section {
-          margin-top: 10px; /* Removed auto margin to close the gap */
+          margin-top: 10px;
           width: 100%;
           padding-bottom: 10px;
       }
@@ -93,9 +92,9 @@
           display: flex;
           justify-content: center;
           gap: 10px;
-          padding-top: 5px;
+          padding-top: 10px; /* Space between date and cards */
           flex-wrap: wrap;
-          margin-bottom: 8px;
+          margin-bottom: 5px;
       }
 
       .achievement-card {
@@ -107,13 +106,12 @@
           backdrop-filter: blur(5px);
       }
 
-      /* Billionaire Logic Style */
       .billionaire-card {
           background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
           border: 1px solid #fff;
           color: #000;
           text-shadow: none;
-          box-shadow: 0 0 12px gold;
+          box-shadow: 0 0 10px gold;
           animation: subtleGlow 2s infinite alternate;
       }
 
@@ -138,9 +136,9 @@
     <div class="leaderboard-grid" id="leaderboard"></div>
 
     <div class="footer-section">
-        <div class="achievements-container" id="achievements"></div>
         <h1>Jurassic Park (Data East 1993)</h1>
         <h2 id="date"></h2>
+        <div class="achievements-container" id="achievements"></div>
     </div>
 
   <script>
@@ -173,10 +171,7 @@
             const playerList = Object.values(stats);
             const mostImproved = [...playerList].sort((a, b) => (b.high - b.low) - (a.high - a.low))[0];
             const mostSubmissions = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
-            
-            // Billionaire logic: Find anyone with high score >= 1,000,000,000
             const billionaires = playerList.filter(p => p.high >= 1000000000);
-            
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
 
             renderLeaderboard(sortedPlayers);
@@ -195,8 +190,9 @@
             item.classList.add('leaderboard-item');
             if (index === 0) item.classList.add('first-place');
             
-            // MATCHING YOUR AVATAR LOGIC: Lowercase and underscore spaces
-            const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
+            // Safe Name logic: trim, lowercase, and replace spaces with underscores
+            const safeName = player.name.trim().toLowerCase().replace(/\s+/g, '_');
+            const avatarFileName = `${safeName}.gif`;
             
             item.innerHTML = `
                 <div class="rank">${index === 0 ? '👑' : (index + 1) + '.'}</div>
@@ -227,12 +223,11 @@
             </div>
         `;
 
-        // Hidden until a player hits 1 Billion
         if (billionaires && billionaires.length > 0) {
             billionaires.forEach(b => {
                 html += `
                     <div class="achievement-card billionaire-card">
-                        <div class="achievement-title">💎 Billion Points Club</div>
+                        <div class="achievement-title">💰 Billion Points Club</div>
                         <div class="achievement-winner">${b.name}</div>
                     </div>
                 `;
