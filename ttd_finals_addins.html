@@ -55,8 +55,8 @@
 
       .avatar {
           border-radius: 50%;
-          width: 42px;
-          height: 42px;
+          width: 40px;
+          height: 40px;
           margin-right: 8px;
           border: 2px solid #1f3a93;
           object-fit: cover;
@@ -68,18 +68,9 @@
       .username { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .score { font-weight: bold; font-size: 16px; color: black; line-height: 1; }
 
-      .footer-section {
-          margin-top: 10px;
-          width: 100%;
-          padding-bottom: 10px;
-      }
+      .footer-section { margin-top: 10px; width: 100%; }
 
-      h1 { 
-          color: #ddd; 
-          text-shadow: 2px 2px 6px rgba(0,0,0,0.5); 
-          margin: 0;
-          font-size: 22px;
-      }
+      h1 { color: #ddd; text-shadow: 2px 2px 6px rgba(0,0,0,0.5); margin: 0; font-size: 22px; }
 
       #date { 
           font-family: 'MedievalSharp', cursive; 
@@ -109,22 +100,6 @@
           max-width: 180px;
       }
 
-      .billionaire-card {
-          background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
-          border: 1px solid #fff;
-          color: #000;
-          text-shadow: none;
-          box-shadow: 0 0 10px gold;
-          animation: subtleGlow 2s infinite alternate;
-      }
-
-      .burns-card {
-          background: linear-gradient(135deg, #aaff00 0%, #008000 100%);
-          border: 1px solid #0f0;
-          color: #fff;
-          box-shadow: 0 0 10px #7fff00;
-      }
-
       .fast-draw-card {
           background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
           border: 1px solid #fff;
@@ -144,6 +119,22 @@
           color: #fff;
       }
 
+      .billionaire-card {
+          background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+          border: 1px solid #fff;
+          color: #000;
+          text-shadow: none;
+          box-shadow: 0 0 10px gold;
+          animation: subtleGlow 2s infinite alternate;
+      }
+
+      .burns-card {
+          background: linear-gradient(135deg, #aaff00 0%, #008000 100%);
+          border: 1px solid #0f0;
+          color: #fff;
+          box-shadow: 0 0 10px #7fff00;
+      }
+
       @keyframes subtleGlow {
           from { box-shadow: 0 0 5px gold; }
           to { box-shadow: 0 0 15px #ffcc00; }
@@ -151,7 +142,7 @@
 
       .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 11px; margin-bottom: 2px; }
       .billionaire-card .achievement-title, 
-      .burns-card .achievement-title, 
+      .burns-card .achievement-title,
       .fast-draw-card .achievement-title,
       .sharpshooter-card .achievement-title,
       .comeback-card .achievement-title { color: #fff; text-shadow: 1px 1px 2px black; }
@@ -165,12 +156,12 @@
 </head>
 <body>
 
-    <img src="https://iscored.info/community/images/games/game1495" alt="Starship Troopers Logo" class="header-image">
+    <img src="https://iscored.info/community/images/games/game3056" alt="Jurassic Park Logo" class="header-image">
 
     <div class="leaderboard-grid" id="leaderboard"></div>
 
     <div class="footer-section">
-        <h1>Starship Troopers (Sega 1997)</h1>
+        <h1>Jurassic Park (Data East 1993)</h1>
         <h2 id="date"></h2>
         <div class="achievements-container" id="achievements"></div>
     </div>
@@ -178,7 +169,7 @@
   <script>
     document.getElementById('date').textContent = new Date().toLocaleDateString();
 
-    const targetUrl = "https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=1011";
+    const targetUrl = "https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=700";
     const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
     const imageBaseUrl = "img/"; 
 
@@ -189,7 +180,7 @@
             const stats = {}; 
             
             let absolutePioneer = { name: "N/A", time: 9999999999999, dateStr: "" };
-
+            
             data.forEach(game => {
                 if (game.scores && Array.isArray(game.scores)) {
                     game.scores.forEach(s => {
@@ -204,6 +195,7 @@
                             }
                         }
 
+                        // Fast Draw logic (earliest score across all data)
                         if (submissionTime < absolutePioneer.time) {
                             absolutePioneer.time = submissionTime;
                             absolutePioneer.name = s.name;
@@ -214,16 +206,17 @@
                             stats[s.name] = { 
                                 name: s.name, 
                                 scores: [], 
-                                rawEntries: [],
+                                rawEntries: [], 
                                 high: 0, 
                                 low: Infinity,
-                                total: 0 
+                                total: 0
                             };
                         }
+                        
                         stats[s.name].scores.push(scoreVal);
                         stats[s.name].total += scoreVal;
                         stats[s.name].rawEntries.push({ val: scoreVal, time: submissionTime });
-                        
+
                         if (scoreVal > stats[s.name].high) stats[s.name].high = scoreVal;
                         if (scoreVal < stats[s.name].low) stats[s.name].low = scoreVal;
                     });
@@ -233,23 +226,25 @@
             const playerList = Object.values(stats);
             if (playerList.length === 0) return;
 
+            // Calculate Milestone Data
             playerList.forEach(p => {
                 p.avg = p.total / p.scores.length;
                 p.rawEntries.sort((a, b) => a.time - b.time);
-                // Difference between very first score and very last score
+                // Difference between very first and very last score posted
                 p.comebackGrowth = p.rawEntries[p.rawEntries.length - 1].val - p.rawEntries[0].val;
             });
 
             const mostImproved = [...playerList].sort((a, b) => (b.high - b.low) - (a.high - a.low))[0];
             const mostSubmissions = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
-            const billionaires = playerList.filter(p => p.high >= 1000000000);
+            const billionaireList = playerList.filter(p => p.high >= 1000000000);
             const sharpShooter = [...playerList].sort((a, b) => b.avg - a.avg)[0];
             const comebackKid = [...playerList].sort((a, b) => b.comebackGrowth - a.comebackGrowth)[0];
+            
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
             const luckyWinner = playerList[Math.floor(Math.random() * playerList.length)];
 
             renderLeaderboard(sortedPlayers);
-            renderAchievements(mostImproved, mostSubmissions, billionaires, luckyWinner, absolutePioneer, sharpShooter, comebackKid);
+            renderAchievements(mostImproved, mostSubmissions, billionaireList, luckyWinner, absolutePioneer, sharpShooter, comebackKid);
 
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -281,41 +276,42 @@
 
     function renderAchievements(improved, grinder, billionaires, luckyWinner, pioneer, shooter, comeback) {
         const container = document.getElementById('achievements');
-        
-        let displayDate = "Start";
-        if(pioneer.dateStr) {
-            const d = new Date(pioneer.dateStr);
-            displayDate = isNaN(d.getTime()) ? pioneer.dateStr : (d.getMonth() + 1) + '/' + d.getDate();
-        }
-
         let html = "";
 
-        // Row 1: Historical & High Skill
-        if (pioneer.time !== 9999999999999) {
-            html += `<div class="achievement-card fast-draw-card"><div class="achievement-title">🔫 Fast Draw</div><div class="achievement-winner">${pioneer.name}</div><div style="font-size:10px">First Score: ${displayDate}</div></div>`;
+        // Pioneer (Fast Draw)
+        if (pioneer && pioneer.time !== 9999999999999) {
+            const d = new Date(pioneer.dateStr);
+            const shortDate = isNaN(d.getTime()) ? "Start" : (d.getMonth() + 1) + '/' + d.getDate();
+            html += `<div class="achievement-card fast-draw-card"><div class="achievement-title">🔫 Fast Draw</div><div class="achievement-winner">${pioneer.name}</div><div style="font-size:10px">First Score: ${shortDate}</div></div>`;
         }
+
+        // Sharpshooter (Average)
         if (shooter) {
             html += `<div class="achievement-card sharpshooter-card"><div class="achievement-title">🎯 Sharpshooter</div><div class="achievement-winner">${shooter.name}</div><div style="font-size:10px">Avg: ${Math.round(shooter.avg).toLocaleString()}</div></div>`;
         }
 
-        // Row 2: Progress & Consistency
-        if (improved) {
-            html += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${improved.name}</div><div style="font-size:10px">Gap: +${(improved.high - improved.low).toLocaleString()}</div></div>`;
-        }
+        // Comeback Kid (Timeline Growth)
         if (comeback && comeback.comebackGrowth > 0) {
             html += `<div class="achievement-card comeback-card"><div class="achievement-title">🔄 Comeback Kid</div><div class="achievement-winner">${comeback.name}</div><div style="font-size:10px">Growth: +${comeback.comebackGrowth.toLocaleString()}</div></div>`;
         }
 
-        // Row 3: Participation & Special
+        // Most Improved (Variance)
+        if (improved) {
+            html += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${improved.name}</div><div style="font-size:10px">Gap: +${(improved.high - improved.low).toLocaleString()}</div></div>`;
+        }
+
+        // Most Played
         if (grinder) {
             html += `<div class="achievement-card"><div class="achievement-title">🕹️ Most Played</div><div class="achievement-winner">${grinder.name}</div><div style="font-size:10px">${grinder.scores.length} games</div></div>`;
         }
+
+        // Random Award
         if (luckyWinner) {
             html += `<div class="achievement-card burns-card"><div class="achievement-title">☢️ Burns Award</div><div class="achievement-winner">${luckyWinner.name}</div><div style="font-size:10px">Excellent!</div></div>`;
         }
 
-        // Billionaire row
-        if (billionaires && billionaires.length > 0) {
+        // Billionaires
+        if (billionaires.length > 0) {
             billionaires.forEach(b => {
                 html += `<div class="achievement-card billionaire-card"><div class="achievement-title">💰 Billionaires Club</div><div class="achievement-winner">${b.name}</div></div>`;
             });
