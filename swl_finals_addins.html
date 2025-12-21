@@ -20,28 +20,71 @@
           align-items: center;
       }
       .header-image { display: block; margin: 0 auto 5px; width: 60%; max-width: 180px; }
-      .leaderboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 900px; margin: 5px auto; width: 100%; }
-      .leaderboard-item { display: flex; align-items: center; background: rgba(255, 255, 255, 0.85); padding: 6px 10px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); color: #2c3e50; }
+      
+      .leaderboard-grid { 
+          display: grid; 
+          grid-template-columns: repeat(3, 1fr); 
+          gap: 10px; 
+          max-width: 900px; 
+          margin: 5px auto; 
+          width: 100%; 
+      }
+      
+      .leaderboard-item { 
+          display: flex; 
+          align-items: center; 
+          background: rgba(255, 255, 255, 0.85); 
+          padding: 6px 10px; 
+          border-radius: 6px; 
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+          color: #2c3e50; 
+      }
+      
       .leaderboard-item.first-place { background: linear-gradient(135deg, #fff9e6 0%, #f1c40f 100%); border: 2px solid #d4af37; transform: scale(1.02); }
       .avatar { border-radius: 50%; width: 42px; height: 42px; margin-right: 8px; border: 2px solid #1f3a93; object-fit: cover; background-color: #ddd; }
       .score-details { flex: 1; text-align: left; overflow: hidden; }
       .rank { font-weight: bold; margin-right: 5px; color: #1f3a93; min-width: 20px; font-size: 14px; }
       .username { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .score { font-weight: bold; font-size: 16px; color: black; line-height: 1; }
-      .footer-section { margin-top: 10px; width: 100%; }
+      
+      .footer-section { margin-top: 15px; width: 100%; max-width: 900px; }
       h1 { color: #ddd; text-shadow: 2px 2px 6px rgba(0,0,0,0.5); margin: 0; font-size: 22px; }
       #date { font-family: 'MedievalSharp', cursive; font-size: 18px; color: #f1c40f; margin: 2px 0; }
-      .achievements-container { display: flex; justify-content: center; gap: 8px; padding-top: 10px; flex-wrap: wrap; margin-bottom: 5px; max-width: 1200px; }
-      .achievement-card { background: rgba(241, 196, 15, 0.15); border: 1px solid #f1c40f; border-radius: 8px; padding: 5px 10px; min-width: 140px; backdrop-filter: blur(5px); flex: 1 1 140px; max-width: 180px; }
-      .fast-draw-card { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: 1px solid #fff; color: #fff; box-shadow: 0 0 10px #e74c3c; }
-      .sharpshooter-card { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border: 1px solid #fff; color: #fff; }
-      .comeback-card { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border: 1px solid #fff; color: #fff; }
-      .billionaire-card { background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%); border: 1px solid #fff; color: #000; text-shadow: none; box-shadow: 0 0 10px gold; animation: subtleGlow 2s infinite alternate; }
-      .burns-card { background: linear-gradient(135deg, #aaff00 0%, #008000 100%); border: 1px solid #0f0; color: #fff; box-shadow: 0 0 10px #7fff00; }
+
+      .achievements-container { 
+          display: grid; 
+          grid-template-columns: repeat(3, 1fr); 
+          gap: 10px; 
+          padding-top: 10px; 
+          width: 100%; 
+      }
+
+      .achievement-card { 
+          background: rgba(255, 255, 255, 0.1); 
+          border: 1px solid rgba(241, 196, 15, 0.5); 
+          border-radius: 8px; 
+          padding: 8px 10px; 
+          backdrop-filter: blur(5px);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-height: 60px;
+      }
+
+      .fast-draw-card { background: linear-gradient(135deg, rgba(231, 76, 60, 0.3) 0%, rgba(192, 57, 43, 0.6) 100%); border-color: #e74c3c; box-shadow: 0 0 10px rgba(231, 76, 60, 0.3); }
+      .sharpshooter-card { background: linear-gradient(135deg, rgba(52, 152, 219, 0.3) 0%, rgba(41, 128, 185, 0.6) 100%); border-color: #3498db; }
+      .comeback-card { background: linear-gradient(135deg, rgba(155, 89, 182, 0.3) 0%, rgba(142, 68, 173, 0.6) 100%); border-color: #9b59b6; }
+      .billionaire-card { background: linear-gradient(135deg, rgba(255, 215, 0, 0.4) 0%, rgba(184, 134, 11, 0.7) 100%); border-color: gold; animation: subtleGlow 2s infinite alternate; }
+      .burns-card { background: linear-gradient(135deg, rgba(170, 255, 0, 0.3) 0%, rgba(0, 128, 0, 0.6) 100%); border-color: #0f0; }
+
       @keyframes subtleGlow { from { box-shadow: 0 0 5px gold; } to { box-shadow: 0 0 15px #ffcc00; } }
-      .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 11px; margin-bottom: 2px; }
-      .achievement-winner { font-weight: bold; font-size: 14px; line-height: 1.2; }
-      @media (max-width: 768px) { .leaderboard-grid { grid-template-columns: 1fr; } .achievement-card { flex: 1 1 45%; } }
+      .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 11px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .achievement-winner { font-weight: bold; font-size: 14px; line-height: 1.2; color: #fff; }
+      .achievement-detail { font-size: 10px; color: #ddd; }
+
+      @media (max-width: 768px) { 
+          .leaderboard-grid, .achievements-container { grid-template-columns: 1fr; } 
+      }
   </style>
 </head>
 <body>
@@ -102,15 +145,9 @@
                 p.improvementGap = p.high - p.low;
             });
 
-            // --- UNIQUE WINNER LOGIC ---
-            // 1. Assign Most Improved first
             const mostImproved = [...playerList].sort((a, b) => b.improvementGap - a.improvementGap)[0];
-            
-            // 2. Assign Comeback Kid (cannot be Most Improved)
             let comebackCandidates = [...playerList].sort((a, b) => b.comebackGrowth - a.comebackGrowth);
             const comebackKid = (comebackCandidates.length > 1 && comebackCandidates[0].name === mostImproved.name) ? comebackCandidates[1] : comebackCandidates[0];
-
-            // 3. Assign Sharpshooter (cannot be Most Improved or Comeback Kid)
             let shooterCandidates = [...playerList].sort((a, b) => b.avg - a.avg);
             const takenNames = [mostImproved.name, comebackKid.name];
             let shooter = shooterCandidates.find(p => !takenNames.includes(p.name)) || shooterCandidates[0];
@@ -143,13 +180,13 @@
         let html = "";
         if (pioneer && pioneer.time !== Infinity) {
             const d = new Date(pioneer.dateStr);
-            html += `<div class="achievement-card fast-draw-card"><div class="achievement-title">🔫 Fast Draw</div><div class="achievement-winner">${pioneer.name}</div><div style="font-size:10px">First Score: ${d.toLocaleDateString()}</div></div>`;
+            html += `<div class="achievement-card fast-draw-card"><div class="achievement-title">🔫 Fast Draw</div><div class="achievement-winner">${pioneer.name}</div><div class="achievement-detail">First Entry: ${d.toLocaleDateString()}</div></div>`;
         }
-        if (shooter) html += `<div class="achievement-card sharpshooter-card"><div class="achievement-title">🎯 Sharpshooter</div><div class="achievement-winner">${shooter.name}</div><div style="font-size:10px">Avg: ${Math.round(shooter.avg).toLocaleString()}</div></div>`;
-        if (comeback && comeback.comebackGrowth > 0) html += `<div class="achievement-card comeback-card"><div class="achievement-title">🔄 Comeback Kid</div><div class="achievement-winner">${comeback.name}</div><div style="font-size:10px">+${comeback.comebackGrowth.toLocaleString()} Growth</div></div>`;
-        if (improved) html += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${improved.name}</div><div style="font-size:10px">Gap: +${improved.improvementGap.toLocaleString()}</div></div>`;
-        if (grinder) html += `<div class="achievement-card"><div class="achievement-title">🕹️ Most Played</div><div class="achievement-winner">${grinder.name}</div><div style="font-size:10px">${grinder.scores.length} games</div></div>`;
-        if (luckyWinner) html += `<div class="achievement-card burns-card"><div class="achievement-title">☢️ Burns Award</div><div class="achievement-winner">${luckyWinner.name}</div><div style="font-size:10px">Excellent!</div></div>`;
+        if (shooter) html += `<div class="achievement-card sharpshooter-card"><div class="achievement-title">🎯 Sharpshooter</div><div class="achievement-winner">${shooter.name}</div><div class="achievement-detail">Avg: ${Math.round(shooter.avg).toLocaleString()}</div></div>`;
+        if (comeback && comeback.comebackGrowth > 0) html += `<div class="achievement-card comeback-card"><div class="achievement-title">🔄 Comeback Kid</div><div class="achievement-winner">${comeback.name}</div><div class="achievement-detail">+${comeback.comebackGrowth.toLocaleString()} Growth</div></div>`;
+        if (improved) html += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${improved.name}</div><div class="achievement-detail">Gap: +${improved.improvementGap.toLocaleString()}</div></div>`;
+        if (grinder) html += `<div class="achievement-card"><div class="achievement-title">🕹️ Most Played</div><div class="achievement-winner">${grinder.name}</div><div class="achievement-detail">${grinder.scores.length} games</div></div>`;
+        if (luckyWinner) html += `<div class="achievement-card burns-card"><div class="achievement-title">☢️ C. Montgomery Burns Award</div><div class="achievement-winner">${luckyWinner.name}</div><div class="achievement-detail">Excellent!</div></div>`;
         if (billionaires) billionaires.forEach(b => { html += `<div class="achievement-card billionaire-card"><div class="achievement-title">💰 Billionaires Club</div><div class="achievement-winner">${b.name}</div></div>`; });
         document.getElementById('achievements').innerHTML = html;
     }
