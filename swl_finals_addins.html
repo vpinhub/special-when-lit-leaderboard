@@ -102,7 +102,7 @@
           border: 1px solid #f1c40f;
           border-radius: 8px;
           padding: 5px 12px;
-          min-width: 160px;
+          min-width: 150px;
           backdrop-filter: blur(5px);
       }
 
@@ -146,13 +146,13 @@
           to { box-shadow: 0 0 15px #ffcc00; }
       }
 
-      .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 12px; }
+      .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 11px; margin-bottom: 2px; }
       .billionaire-card .achievement-title, 
       .burns-card .achievement-title, 
       .fast-draw-card .achievement-title,
       .sharpshooter-card .achievement-title,
       .comeback-card .achievement-title { color: #fff; text-shadow: 1px 1px 2px black; }
-      .achievement-winner { font-weight: bold; font-size: 15px; }
+      .achievement-winner { font-weight: bold; font-size: 14px; }
 
       @media (max-width: 768px) {
           .leaderboard-grid { grid-template-columns: 1fr; }
@@ -184,7 +184,7 @@
             const data = await response.json();
             const stats = {}; 
             
-            let absolutePioneer = { name: "Finding...", time: 9999999999999, dateStr: "" };
+            let absolutePioneer = { name: "N/A", time: 9999999999999, dateStr: "" };
 
             data.forEach(game => {
                 if (game.scores && Array.isArray(game.scores)) {
@@ -229,10 +229,11 @@
             const playerList = Object.values(stats);
             if (playerList.length === 0) return;
 
-            // Milestone logic
+            // Calculate Milestone Data
             playerList.forEach(p => {
                 p.avg = p.total / p.scores.length;
                 p.rawEntries.sort((a, b) => a.time - b.time);
+                // Growth from first-ever entry to most-recent entry
                 p.comebackGrowth = p.rawEntries[p.rawEntries.length - 1].val - p.rawEntries[0].val;
             });
 
@@ -241,6 +242,7 @@
             const billionaires = playerList.filter(p => p.high >= 1000000000);
             const sharpShooter = [...playerList].sort((a, b) => b.avg - a.avg)[0];
             const comebackKid = [...playerList].sort((a, b) => b.comebackGrowth - a.comebackGrowth)[0];
+            
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
             const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
 
@@ -278,10 +280,10 @@
     function renderAchievements(improved, grinder, billionaires, luckyWinner, pioneer, shooter, comeback) {
         const container = document.getElementById('achievements');
         
-        let displayDate = "Competition Start";
+        let displayDate = "Start";
         if(pioneer.dateStr) {
             const d = new Date(pioneer.dateStr);
-            displayDate = isNaN(d.getTime()) ? pioneer.dateStr : d.toLocaleDateString();
+            displayDate = isNaN(d.getTime()) ? pioneer.dateStr : (d.getMonth() + 1) + '/' + d.getDate();
         }
 
         let html = "";
@@ -292,7 +294,7 @@
                 <div class="achievement-card fast-draw-card">
                     <div class="achievement-title">🔫 Fast Draw</div>
                     <div class="achievement-winner">${pioneer.name}</div>
-                    <div style="font-size:11px">First Score: ${displayDate}</div>
+                    <div style="font-size:10px">First Score: ${displayDate}</div>
                 </div>
             `;
         }
@@ -303,7 +305,7 @@
                 <div class="achievement-card sharpshooter-card">
                     <div class="achievement-title">🎯 Sharpshooter</div>
                     <div class="achievement-winner">${shooter.name}</div>
-                    <div style="font-size:11px">Avg: ${Math.round(shooter.avg).toLocaleString()}</div>
+                    <div style="font-size:10px">Avg: ${Math.round(shooter.avg).toLocaleString()}</div>
                 </div>
             `;
         }
@@ -312,9 +314,9 @@
         if (comeback && comeback.comebackGrowth > 0) {
             html += `
                 <div class="achievement-card comeback-card">
-                    <div class="achievement-title">📈 Comeback Kid</div>
+                    <div class="achievement-title">🔄 Comeback Kid</div>
                     <div class="achievement-winner">${comeback.name}</div>
-                    <div style="font-size:11px">+${comeback.comebackGrowth.toLocaleString()} Growth</div>
+                    <div style="font-size:10px">+${comeback.comebackGrowth.toLocaleString()} Growth</div>
                 </div>
             `;
         }
@@ -325,7 +327,7 @@
                 <div class="achievement-card">
                     <div class="achievement-title">📈 Most Improved</div>
                     <div class="achievement-winner">${improved.name}</div>
-                    <div style="font-size:11px">+${(improved.high - improved.low).toLocaleString()}</div>
+                    <div style="font-size:10px">Gap: +${(improved.high - improved.low).toLocaleString()}</div>
                 </div>
             `;
         }
@@ -336,7 +338,7 @@
                 <div class="achievement-card">
                     <div class="achievement-title">🕹️ Most Played</div>
                     <div class="achievement-winner">${grinder.name}</div>
-                    <div style="font-size:11px">${grinder.scores.length} games</div>
+                    <div style="font-size:10px">${grinder.scores.length} games</div>
                 </div>
             `;
         }
@@ -345,9 +347,9 @@
         if (luckyWinner) {
             html += `
                 <div class="achievement-card burns-card">
-                    <div class="achievement-title">☢️ C. Montgomery Burns Award</div>
+                    <div class="achievement-title">☢️ C. Montgomery Burns</div>
                     <div class="achievement-winner">${luckyWinner.name}</div>
-                    <div style="font-size:11px">Excellent!</div>
+                    <div style="font-size:10px">Excellent!</div>
                 </div>
             `;
         }
