@@ -168,22 +168,31 @@
             const data = await response.json();
             const stats = {}; 
             
-            // This will hold the absolute first person to submit any score
-            let absolutePioneer = { name: "N/A", time: Infinity, dateStr: "" };
+            // Initializing with an extremely high value to find the true minimum
+            let absolutePioneer = { name: "Finding...", time: 9999999999999, dateStr: "" };
 
             data.forEach(game => {
                 if (game.scores && Array.isArray(game.scores)) {
                     game.scores.forEach(s => {
                         const scoreVal = parseInt(s.score, 10);
                         
-                        // Parse date_added carefully. Handle both string formats and timestamps.
-                        const submissionTime = s.date_added ? new Date(s.date_added).getTime() : Infinity;
+                        // iScored sometimes uses 'date_added' or just 'date'
+                        const rawDate = s.date_added || s.date || s.timestamp;
+                        let submissionTime = Infinity;
 
-                        // Identify the pioneer (Fast Draw)
+                        if (rawDate) {
+                            // Standard JS Date parsing
+                            const parsed = new Date(rawDate);
+                            if (!isNaN(parsed.getTime())) {
+                                submissionTime = parsed.getTime();
+                            }
+                        }
+
+                        // Compare to find the oldest score
                         if (submissionTime < absolutePioneer.time) {
                             absolutePioneer.time = submissionTime;
                             absolutePioneer.name = s.name;
-                            absolutePioneer.dateStr = s.date_added;
+                            absolutePioneer.dateStr = rawDate;
                         }
 
                         if (!stats[s.name]) {
@@ -203,7 +212,6 @@
             const mostSubmissions = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
             const billionaires = playerList.filter(p => p.high >= 1000000000);
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
-            
             const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
 
             renderLeaderboard(sortedPlayers);
@@ -239,34 +247,50 @@
 
     function renderAchievements(improved, grinder, billionaires, luckyWinner, pioneer) {
         const container = document.getElementById('achievements');
-        if (!improved || !grinder) return;
+        
+        // Format the date string safely for the UI
+        let displayDate = "Competition Start";
+        if(pioneer.dateStr) {
+            const d = new Date(pioneer.dateStr);
+            displayDate = isNaN(d.getTime()) ? pioneer.dateStr : d.toLocaleDateString();
+        }
 
-        // Use a pretty date for the badge footer
-        const pioneerDate = pioneer.dateStr ? new Date(pioneer.dateStr).toLocaleDateString() : "Competition Start";
+        let html = "";
 
-        let html = `
-            <div class="achievement-card">
-                <div class="achievement-title">📈 Most Improved</div>
-                <div class="achievement-winner">${improved.name}</div>
-                <div style="font-size:11px">+${(improved.high - improved.low).toLocaleString()}</div>
-            </div>
-            <div class="achievement-card">
-                <div class="achievement-title">🕹️ Most Played</div>
-                <div class="achievement-winner">${grinder.name}</div>
-                <div style="font-size:11px">${grinder.scores.length} games</div>
-            </div>
-        `;
-
-        if (pioneer.name !== "N/A") {
+        // 1. FAST DRAW (Prioritized)
+        if (pioneer.time !== 9999999999999) {
             html += `
                 <div class="achievement-card fast-draw-card">
                     <div class="achievement-title">🔫 Fast Draw</div>
                     <div class="achievement-winner">${pioneer.name}</div>
-                    <div style="font-size:11px">First in: ${pioneerDate}</div>
+                    <div style="font-size:11px">First Score: ${displayDate}</div>
                 </div>
             `;
         }
 
+        // 2. MOST IMPROVED
+        if (improved) {
+            html += `
+                <div class="achievement-card">
+                    <div class="achievement-title">📈 Most Improved</div>
+                    <div class="achievement-winner">${improved.name}</div>
+                    <div style="font-size:11px">+${(improved.high - improved.low).toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        // 3. MOST PLAYED
+        if (grinder) {
+            html += `
+                <div class="achievement-card">
+                    <div class="achievement-title">🕹️ Most Played</div>
+                    <div class="achievement-winner">${grinder.name}</div>
+                    <div style="font-size:11px">${grinder.scores.length} games</div>
+                </div>
+            `;
+        }
+
+        // 4. BURNS AWARD
         if (luckyWinner) {
             html += `
                 <div class="achievement-card burns-card">
@@ -277,6 +301,7 @@
             `;
         }
 
+        // 5. BILLIONAIRES
         if (billionaires && billionaires.length > 0) {
             billionaires.forEach(b => {
                 html += `
@@ -287,6 +312,7 @@
                 `;
             });
         }
+        
         container.innerHTML = html;
     }
 
