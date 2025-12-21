@@ -20,28 +20,9 @@
           align-items: center;
       }
       .header-image { display: block; margin: 0 auto 5px; width: 60%; max-width: 180px; }
-      .leaderboard-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px;
-          max-width: 900px;
-          margin: 5px auto; 
-          width: 100%;
-      }
-      .leaderboard-item {
-          display: flex;
-          align-items: center;
-          background: rgba(255, 255, 255, 0.85);
-          padding: 6px 10px;
-          border-radius: 6px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-          color: #2c3e50;
-      }
-      .leaderboard-item.first-place {
-          background: linear-gradient(135deg, #fff9e6 0%, #f1c40f 100%);
-          border: 2px solid #d4af37;
-          transform: scale(1.02);
-      }
+      .leaderboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 900px; margin: 5px auto; width: 100%; }
+      .leaderboard-item { display: flex; align-items: center; background: rgba(255, 255, 255, 0.85); padding: 6px 10px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); color: #2c3e50; }
+      .leaderboard-item.first-place { background: linear-gradient(135deg, #fff9e6 0%, #f1c40f 100%); border: 2px solid #d4af37; transform: scale(1.02); }
       .avatar { border-radius: 50%; width: 42px; height: 42px; margin-right: 8px; border: 2px solid #1f3a93; object-fit: cover; background-color: #ddd; }
       .score-details { flex: 1; text-align: left; overflow: hidden; }
       .rank { font-weight: bold; margin-right: 5px; color: #1f3a93; min-width: 20px; font-size: 14px; }
@@ -59,7 +40,6 @@
       .burns-card { background: linear-gradient(135deg, #aaff00 0%, #008000 100%); border: 1px solid #0f0; color: #fff; box-shadow: 0 0 10px #7fff00; }
       @keyframes subtleGlow { from { box-shadow: 0 0 5px gold; } to { box-shadow: 0 0 15px #ffcc00; } }
       .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 11px; margin-bottom: 2px; }
-      .billionaire-card .achievement-title, .burns-card .achievement-title, .fast-draw-card .achievement-title, .sharpshooter-card .achievement-title, .comeback-card .achievement-title { color: #fff; text-shadow: 1px 1px 2px black; }
       .achievement-winner { font-weight: bold; font-size: 14px; line-height: 1.2; }
       @media (max-width: 768px) { .leaderboard-grid { grid-template-columns: 1fr; } .achievement-card { flex: 1 1 45%; } }
   </style>
@@ -119,18 +99,29 @@
                 p.avg = p.total / p.scores.length;
                 p.rawEntries.sort((a, b) => a.time - b.time);
                 p.comebackGrowth = p.rawEntries.length > 1 ? p.rawEntries[p.rawEntries.length - 1].val - p.rawEntries[0].val : 0;
+                p.improvementGap = p.high - p.low;
             });
 
-            const mostImproved = [...playerList].sort((a, b) => (b.high - b.low) - (a.high - a.low))[0];
+            // --- UNIQUE WINNER LOGIC ---
+            // 1. Assign Most Improved first
+            const mostImproved = [...playerList].sort((a, b) => b.improvementGap - a.improvementGap)[0];
+            
+            // 2. Assign Comeback Kid (cannot be Most Improved)
+            let comebackCandidates = [...playerList].sort((a, b) => b.comebackGrowth - a.comebackGrowth);
+            const comebackKid = (comebackCandidates.length > 1 && comebackCandidates[0].name === mostImproved.name) ? comebackCandidates[1] : comebackCandidates[0];
+
+            // 3. Assign Sharpshooter (cannot be Most Improved or Comeback Kid)
+            let shooterCandidates = [...playerList].sort((a, b) => b.avg - a.avg);
+            const takenNames = [mostImproved.name, comebackKid.name];
+            let shooter = shooterCandidates.find(p => !takenNames.includes(p.name)) || shooterCandidates[0];
+
             const grinder = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
             const billionaires = playerList.filter(p => p.high >= 1000000000);
-            const shooter = [...playerList].sort((a, b) => b.avg - a.avg)[0];
-            const comeback = [...playerList].sort((a, b) => b.comebackGrowth - a.comebackGrowth)[0];
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
             const luckyWinner = playerList[Math.floor(Math.random() * playerList.length)];
 
             renderLeaderboard(sortedPlayers);
-            renderAchievements(mostImproved, grinder, billionaires, luckyWinner, absolutePioneer, shooter, comeback);
+            renderAchievements(mostImproved, grinder, billionaires, luckyWinner, absolutePioneer, shooter, comebackKid);
         } catch (e) { console.error("Leaderboard Error:", e); }
     }
 
@@ -156,7 +147,7 @@
         }
         if (shooter) html += `<div class="achievement-card sharpshooter-card"><div class="achievement-title">🎯 Sharpshooter</div><div class="achievement-winner">${shooter.name}</div><div style="font-size:10px">Avg: ${Math.round(shooter.avg).toLocaleString()}</div></div>`;
         if (comeback && comeback.comebackGrowth > 0) html += `<div class="achievement-card comeback-card"><div class="achievement-title">🔄 Comeback Kid</div><div class="achievement-winner">${comeback.name}</div><div style="font-size:10px">+${comeback.comebackGrowth.toLocaleString()} Growth</div></div>`;
-        if (improved) html += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${improved.name}</div><div style="font-size:10px">Gap: +${(improved.high - improved.low).toLocaleString()}</div></div>`;
+        if (improved) html += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${improved.name}</div><div style="font-size:10px">Gap: +${improved.improvementGap.toLocaleString()}</div></div>`;
         if (grinder) html += `<div class="achievement-card"><div class="achievement-title">🕹️ Most Played</div><div class="achievement-winner">${grinder.name}</div><div style="font-size:10px">${grinder.scores.length} games</div></div>`;
         if (luckyWinner) html += `<div class="achievement-card burns-card"><div class="achievement-title">☢️ Burns Award</div><div class="achievement-winner">${luckyWinner.name}</div><div style="font-size:10px">Excellent!</div></div>`;
         if (billionaires) billionaires.forEach(b => { html += `<div class="achievement-card billionaire-card"><div class="achievement-title">💰 Billionaires Club</div><div class="achievement-winner">${b.name}</div></div>`; });
