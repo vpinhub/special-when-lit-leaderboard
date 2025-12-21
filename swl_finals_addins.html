@@ -135,9 +135,7 @@
       }
 
       .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 12px; }
-      .billionaire-card .achievement-title, 
-      .burns-card .achievement-title, 
-      .fast-draw-card .achievement-title { color: #fff; text-shadow: 1px 1px 2px black; }
+      .billionaire-card .achievement-title, .burns-card .achievement-title, .fast-draw-card .achievement-title { color: #fff; text-shadow: 1px 1px 2px black; }
       .achievement-winner { font-weight: bold; font-size: 15px; }
 
       @media (max-width: 768px) {
@@ -170,18 +168,22 @@
             const data = await response.json();
             const stats = {}; 
             
-            let pioneer = null; // To track the oldest submission
+            // This will hold the absolute first person to submit any score
+            let absolutePioneer = { name: "N/A", time: Infinity, dateStr: "" };
 
             data.forEach(game => {
                 if (game.scores && Array.isArray(game.scores)) {
                     game.scores.forEach(s => {
                         const scoreVal = parseInt(s.score, 10);
-                        // Convert the date string to a numeric timestamp for comparison
-                        const submissionTime = new Date(s.date_added).getTime();
+                        
+                        // Parse date_added carefully. Handle both string formats and timestamps.
+                        const submissionTime = s.date_added ? new Date(s.date_added).getTime() : Infinity;
 
-                        // If this submission is older than the one we have, it becomes the pioneer
-                        if (!pioneer || submissionTime < pioneer.time) {
-                            pioneer = { name: s.name, time: submissionTime };
+                        // Identify the pioneer (Fast Draw)
+                        if (submissionTime < absolutePioneer.time) {
+                            absolutePioneer.time = submissionTime;
+                            absolutePioneer.name = s.name;
+                            absolutePioneer.dateStr = s.date_added;
                         }
 
                         if (!stats[s.name]) {
@@ -205,7 +207,7 @@
             const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
 
             renderLeaderboard(sortedPlayers);
-            renderAchievements(mostImproved, mostSubmissions, billionaires, randomPlayer, pioneer);
+            renderAchievements(mostImproved, mostSubmissions, billionaires, randomPlayer, absolutePioneer);
 
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -239,6 +241,9 @@
         const container = document.getElementById('achievements');
         if (!improved || !grinder) return;
 
+        // Use a pretty date for the badge footer
+        const pioneerDate = pioneer.dateStr ? new Date(pioneer.dateStr).toLocaleDateString() : "Competition Start";
+
         let html = `
             <div class="achievement-card">
                 <div class="achievement-title">📈 Most Improved</div>
@@ -252,13 +257,12 @@
             </div>
         `;
 
-        // FAST DRAW: Awarded to the Pioneer (first person to ever submit a score)
-        if (pioneer) {
+        if (pioneer.name !== "N/A") {
             html += `
                 <div class="achievement-card fast-draw-card">
                     <div class="achievement-title">🔫 Fast Draw</div>
                     <div class="achievement-winner">${pioneer.name}</div>
-                    <div style="font-size:11px">First Score Submitted</div>
+                    <div style="font-size:11px">First in: ${pioneerDate}</div>
                 </div>
             `;
         }
