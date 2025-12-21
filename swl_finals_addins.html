@@ -115,12 +115,19 @@
           animation: subtleGlow 2s infinite alternate;
       }
 
-      /* Nuclear Green style for Mr. Burns */
       .burns-card {
           background: linear-gradient(135deg, #aaff00 0%, #008000 100%);
           border: 1px solid #0f0;
           color: #fff;
           box-shadow: 0 0 10px #7fff00;
+      }
+
+      /* New style for Fast Draw */
+      .fast-draw-card {
+          background: linear-gradient(135deg, #2980b9 0%, #2c3e50 100%);
+          border: 1px solid #3498db;
+          color: #fff;
+          box-shadow: 0 0 10px #3498db;
       }
 
       @keyframes subtleGlow {
@@ -129,7 +136,7 @@
       }
 
       .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 12px; }
-      .billionaire-card .achievement-title, .burns-card .achievement-title { color: #fff; text-shadow: 1px 1px 2px black; }
+      .billionaire-card .achievement-title, .burns-card .achievement-title, .fast-draw-card .achievement-title { color: #fff; text-shadow: 1px 1px 2px black; }
       .achievement-winner { font-weight: bold; font-size: 15px; }
 
       @media (max-width: 768px) {
@@ -162,10 +169,19 @@
             const data = await response.json();
             const stats = {}; 
             
+            let absoluteFirstScore = null;
+
             data.forEach(game => {
                 if (game.scores && Array.isArray(game.scores)) {
                     game.scores.forEach(s => {
                         const scoreVal = parseInt(s.score, 10);
+                        const scoreDate = new Date(s.date_added).getTime();
+
+                        // Track the absolute first score posted by anyone
+                        if (!absoluteFirstScore || scoreDate < absoluteFirstScore.time) {
+                            absoluteFirstScore = { name: s.name, time: scoreDate };
+                        }
+
                         if (!stats[s.name]) {
                             stats[s.name] = { name: s.name, scores: [], high: 0, low: Infinity };
                         }
@@ -184,11 +200,10 @@
             const billionaires = playerList.filter(p => p.high >= 1000000000);
             const sortedPlayers = playerList.sort((a, b) => b.high - a.high);
             
-            // PICK A RANDOM PLAYER FOR THE BURNS AWARD
             const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
 
             renderLeaderboard(sortedPlayers);
-            renderAchievements(mostImproved, mostSubmissions, billionaires, randomPlayer);
+            renderAchievements(mostImproved, mostSubmissions, billionaires, randomPlayer, absoluteFirstScore);
 
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -218,7 +233,7 @@
         });
     }
 
-    function renderAchievements(improved, grinder, billionaires, luckyWinner) {
+    function renderAchievements(improved, grinder, billionaires, luckyWinner, firstDraw) {
         const container = document.getElementById('achievements');
         if (!improved || !grinder) return;
 
@@ -235,7 +250,17 @@
             </div>
         `;
 
-        // The Random Burns Award
+        // Fast Draw Achievement
+        if (firstDraw) {
+            html += `
+                <div class="achievement-card fast-draw-card">
+                    <div class="achievement-title">🔫 Fast Draw</div>
+                    <div class="achievement-winner">${firstDraw.name}</div>
+                    <div style="font-size:11px">First Score Posted</div>
+                </div>
+            `;
+        }
+
         if (luckyWinner) {
             html += `
                 <div class="achievement-card burns-card">
