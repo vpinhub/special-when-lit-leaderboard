@@ -82,6 +82,8 @@
         try {
             const response = await fetch(proxiedUrl);
             const data = await response.json();
+            if (!data || !Array.isArray(data)) return;
+
             const stats = {}; 
             let absolutePioneer = { name: "N/A", time: Infinity, dateStr: "" };
 
@@ -129,7 +131,7 @@
 
             renderLeaderboard(sortedPlayers);
             renderAchievements(mostImproved, grinder, billionaires, luckyWinner, absolutePioneer, shooter, comeback);
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Leaderboard Error:", e); }
     }
 
     function renderLeaderboard(players) {
@@ -148,7 +150,7 @@
 
     function renderAchievements(improved, grinder, billionaires, luckyWinner, pioneer, shooter, comeback) {
         let html = "";
-        if (pioneer.time !== Infinity) {
+        if (pioneer && pioneer.time !== Infinity) {
             const d = new Date(pioneer.dateStr);
             html += `<div class="achievement-card fast-draw-card"><div class="achievement-title">🔫 Fast Draw</div><div class="achievement-winner">${pioneer.name}</div><div style="font-size:10px">First Score: ${d.toLocaleDateString()}</div></div>`;
         }
@@ -157,7 +159,7 @@
         if (improved) html += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${improved.name}</div><div style="font-size:10px">Gap: +${(improved.high - improved.low).toLocaleString()}</div></div>`;
         if (grinder) html += `<div class="achievement-card"><div class="achievement-title">🕹️ Most Played</div><div class="achievement-winner">${grinder.name}</div><div style="font-size:10px">${grinder.scores.length} games</div></div>`;
         if (luckyWinner) html += `<div class="achievement-card burns-card"><div class="achievement-title">☢️ Burns Award</div><div class="achievement-winner">${luckyWinner.name}</div><div style="font-size:10px">Excellent!</div></div>`;
-        billionaires.forEach(b => { html += `<div class="achievement-card billionaire-card"><div class="achievement-title">💰 Billionaires Club</div><div class="achievement-winner">${b.name}</div></div>`; });
+        if (billionaires) billionaires.forEach(b => { html += `<div class="achievement-card billionaire-card"><div class="achievement-title">💰 Billionaires Club</div><div class="achievement-winner">${b.name}</div></div>`; });
         document.getElementById('achievements').innerHTML = html;
     }
     fetchAndDisplayLeaderboard();
