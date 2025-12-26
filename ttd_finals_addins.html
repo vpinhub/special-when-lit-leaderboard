@@ -57,7 +57,7 @@
     <img id="gameLogo" src="" alt="" class="header-image" style="display:none;">
     <div class="leaderboard-grid" id="leaderboard"></div>
     <div class="footer-section">
-        <h1 id="gameTitle">Loading...</h1>
+        <h1 id="gameTitle">Room 700: Checking for scores...</h1>
         <h2 id="date"></h2>
         <div class="achievements-container" id="achievements"></div>
     </div>
@@ -70,15 +70,22 @@
     async function fetchData() {
         try {
             const [iscoredRes, vpsRes] = await Promise.all([fetch(ISCORED_API), fetch(VPS_DB_URL)]);
-            const iscoredData = await iscoredRes.json();
+            let iscoredData = await iscoredRes.json();
             const vpsData = await vpsRes.json();
-            if (!iscoredData || !Array.isArray(iscoredData)) return;
+            
+            // Check for AllOrigins wrapping
+            if (iscoredData.contents) iscoredData = JSON.parse(iscoredData.contents);
+            if (!iscoredData || !Array.isArray(iscoredData)) {
+                 document.getElementById('gameTitle').textContent = "Room 700: Data Sync Pending...";
+                 return;
+            }
 
             let activeGame = null;
             let latestScoreTime = 0;
             
+            // Priority 1: Game with a tag AND recent scores
             iscoredData.forEach(game => {
-                const hasTag = (game.tags && (game.tags.includes('game=') || game.tags.includes('vpsId:')));
+                const hasTag = (game.tags && (game.tags.includes('game=') || game.tags.includes('vpsId:') || game.tags.includes('fileType=')));
                 if (hasTag && game.scores && game.scores.length > 0) {
                     game.scores.forEach(s => {
                         const t = new Date(s.date_added || s.timestamp).getTime();
@@ -87,12 +94,24 @@
                 }
             });
 
-            if (!activeGame) activeGame = iscoredData.find(g => g.tags && (g.tags.includes('game=') || g.tags.includes('vpsId:')));
-            if (activeGame) renderPage(activeGame, vpsData);
-        } catch (e) { console.error("Error:", e); }
+            // Priority 2: Fallback to the first game in the room that has a tag (even if no scores)
+            if (!activeGame) {
+                activeGame = iscoredData.find(g => g.tags && (g.tags.includes('game=') || g.tags.includes('vpsId:')));
+            }
+
+            if (activeGame) {
+                renderPage(activeGame, vpsData);
+            } else {
+                document.getElementById('gameTitle').textContent = "Room 700: No Tagged Table Found";
+            }
+        } catch (e) { 
+            console.error("Error:", e); 
+            document.getElementById('gameTitle').textContent = "Room 700: Connection Error";
+        }
     }
 
     function renderPage(game, vpsDb) {
+        // Robust regex to find VPS ID from various tag formats
         const vpsIdMatch = game.tags.match(/(?:game=|vpsId:)([a-zA-Z0-9]+)/);
         const vpsId = vpsIdMatch ? vpsIdMatch[1] : null;
         const vpsInfo = vpsDb.find(v => v.id === vpsId);
