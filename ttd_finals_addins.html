@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VPin Leaderboard - Room 700</title>
+  <title>VPin Leaderboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Encode+Sans&family=MedievalSharp&display=swap" rel="stylesheet">
   <style>
       body {
@@ -15,7 +15,7 @@
           display: flex; flex-direction: column; align-items: center;
       }
       .header-image { 
-          display: block; margin: 0 auto 10px; 
+          display: block; margin: 0 auto 5px; 
           width: 90%; max-width: 400px; height: 220px;
           object-fit: cover; border-radius: 12px;
           border: 3px solid #f1c40f; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
@@ -31,7 +31,7 @@
           color: #2c3e50; 
       }
       .leaderboard-item.first-place { background: linear-gradient(135deg, #fff9e6 0%, #f1c40f 100%); border: 2px solid #d4af37; transform: scale(1.02); }
-      .avatar { border-radius: 50%; width: 42px; height: 42px; margin-right: 8px; border: 2px solid #1f3a93; object-fit: cover; background-color: #ddd; }
+      .avatar { border-radius: 50%; width: 40px; height: 40px; margin-right: 8px; border: 2px solid #1f3a93; object-fit: cover; background-color: #ddd; }
       .score-details { flex: 1; text-align: left; overflow: hidden; }
       .rank { font-weight: bold; margin-right: 5px; color: #1f3a93; min-width: 20px; font-size: 14px; }
       .username { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -39,13 +39,22 @@
       .footer-section { margin-top: 15px; width: 100%; max-width: 900px; }
       h1 { color: #ddd; text-shadow: 2px 2px 6px rgba(0,0,0,0.5); margin: 0; font-size: 22px; }
       #date { font-family: 'MedievalSharp', cursive; font-size: 18px; color: #f1c40f; margin: 2px 0; }
-      .achievements-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding-top: 10px; width: 100%; }
-      .achievement-card { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(241, 196, 15, 0.5); border-radius: 8px; padding: 8px 10px; backdrop-filter: blur(5px); display: flex; flex-direction: column; justify-content: center; min-height: 60px; }
+
+      .achievements-container { 
+          display: grid; grid-template-columns: repeat(3, 1fr); 
+          gap: 10px; padding-top: 10px; width: 100%; 
+      }
+      .achievement-card { 
+          background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(241, 196, 15, 0.5); 
+          border-radius: 8px; padding: 8px 10px; backdrop-filter: blur(5px);
+          display: flex; flex-direction: column; justify-content: center; min-height: 60px;
+      }
       .fast-draw-card { background: linear-gradient(135deg, rgba(231, 76, 60, 0.3) 0%, rgba(192, 57, 43, 0.6) 100%); border-color: #e74c3c; box-shadow: 0 0 10px rgba(231, 76, 60, 0.3); }
       .sharpshooter-card { background: linear-gradient(135deg, rgba(52, 152, 219, 0.3) 0%, rgba(41, 128, 185, 0.6) 100%); border-color: #3498db; }
       .comeback-card { background: linear-gradient(135deg, rgba(155, 89, 182, 0.3) 0%, rgba(142, 68, 173, 0.6) 100%); border-color: #9b59b6; }
       .billionaire-card { background: linear-gradient(135deg, rgba(255, 215, 0, 0.4) 0%, rgba(184, 134, 11, 0.7) 100%); border-color: gold; animation: subtleGlow 2s infinite alternate; }
       .burns-card { background: linear-gradient(135deg, rgba(170, 255, 0, 0.3) 0%, rgba(0, 128, 0, 0.6) 100%); border-color: #0f0; }
+
       @keyframes subtleGlow { from { box-shadow: 0 0 5px gold; } to { box-shadow: 0 0 15px #ffcc00; } }
       .achievement-title { font-family: 'MedievalSharp', cursive; color: #f1c40f; font-size: 11px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
       .achievement-winner { font-weight: bold; font-size: 14px; line-height: 1.2; color: #fff; }
@@ -57,10 +66,11 @@
     <img id="gameLogo" src="" alt="" class="header-image" style="display:none;">
     <div class="leaderboard-grid" id="leaderboard"></div>
     <div class="footer-section">
-        <h1 id="gameTitle">Loading Room 700 Data...</h1>
+        <h1 id="gameTitle">Loading...</h1>
         <h2 id="date"></h2>
         <div class="achievements-container" id="achievements"></div>
     </div>
+
 <script>
     const ROOM_ID = "700";
     const ISCORED_API = "https://api.allorigins.win/raw?url=" + encodeURIComponent(`https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=${ROOM_ID}`);
@@ -72,49 +82,29 @@
             const [iscoredRes, vpsRes] = await Promise.all([fetch(ISCORED_API), fetch(VPS_DB_URL)]);
             const iscoredData = await iscoredRes.json();
             const vpsData = await vpsRes.json();
-            
             if (!iscoredData || !Array.isArray(iscoredData)) return;
 
             let activeGame = null;
             let latestScoreTime = 0;
             
-            // Find most recent game that has scores AND a tag
             iscoredData.forEach(game => {
-                if (game.tags && game.tags.length > 5) {
-                    if (game.scores && game.scores.length > 0) {
-                        game.scores.forEach(s => {
-                            const t = new Date(s.date_added || s.timestamp).getTime();
-                            if (t > latestScoreTime) { latestScoreTime = t; activeGame = game; }
-                        });
-                    }
+                if (game.tags && game.tags.length > 5 && game.scores && game.scores.length > 0) {
+                    game.scores.forEach(s => {
+                        const t = new Date(s.date_added || s.timestamp).getTime();
+                        if (t > latestScoreTime) { latestScoreTime = t; activeGame = game; }
+                    });
                 }
             });
 
-            // Fallback to first tagged game if no scores found
-            if (!activeGame) {
-                activeGame = iscoredData.find(g => g.tags && g.tags.length > 5);
-            }
-
-            if (activeGame) {
-                renderPage(activeGame, vpsData);
-            } else {
-                document.getElementById('gameTitle').textContent = "No Tagged Table Found in Room 700";
-            }
-        } catch (e) { 
-            console.error("Sync Error:", e); 
-        }
+            if (!activeGame) activeGame = iscoredData.find(g => g.tags && g.tags.length > 5);
+            if (activeGame) renderPage(activeGame, vpsData);
+        } catch (e) { console.error("Error:", e); }
     }
 
     function renderPage(game, vpsDb) {
-        // IMPROVED TAG PARSING
-        // Looks for an 8-character ID (like hLb8ANDt) that follows "game=" or "vpsId:"
-        // or just exists in the string.
-        let vpsId = null;
-        const tag = game.tags;
-        
-        const vpsMatch = tag.match(/(?:game=|vpsId:)([a-zA-Z0-9]{8,12})/i) || tag.match(/[a-zA-Z0-9]{8,12}/);
-        if (vpsMatch) vpsId = vpsMatch[0].replace('game=', '').replace('vpsId:', '');
-
+        // Tag parsing for the long URL format (pepAXFDj etc)
+        const vpsIdMatch = game.tags.match(/(?:game=|vpsId:)([a-zA-Z0-9\-]+)/);
+        const vpsId = vpsIdMatch ? vpsIdMatch[1] : null;
         const vpsInfo = vpsDb.find(v => v.id === vpsId);
 
         // Name Formatting
@@ -127,30 +117,31 @@
         // Image Selection Logic
         const logo = document.getElementById('gameLogo');
         const vpsImg = vpsInfo?.tableFiles?.[0]?.imgUrl || vpsInfo?.b2sFiles?.[0]?.imgUrl;
-        
         logo.src = `https://iscored.info/community/images/games/game${game.game_id}`;
         logo.style.display = 'block';
-        
-        // Error handling for image fallback
-        logo.onerror = () => {
-            if (vpsImg && logo.src !== vpsImg) {
-                logo.src = vpsImg;
-            } else {
-                logo.style.display = 'none';
-            }
-        };
+        logo.onerror = () => { if (vpsImg && logo.src !== vpsImg) logo.src = vpsImg; };
 
-        // Render Scores
+        // Original Achievement & Score Logic
         const stats = {};
-        let pioneer = { name: "N/A", time: Infinity, dateStr: "" };
+        let absolutePioneer = { name: "N/A", time: Infinity, dateStr: "" };
+        
         game.scores.forEach(s => {
             const val = parseInt(s.score, 10);
-            const time = new Date(s.date_added || s.timestamp).getTime();
-            if (time < pioneer.time) pioneer = { name: s.name, time: time, dateStr: s.date_added };
-            if (!stats[s.name]) stats[s.name] = { name: s.name, scores: [], rawEntries: [], high: 0, low: Infinity, total: 0 };
+            const rawDate = s.date_added || s.date || s.timestamp;
+            const submissionTime = rawDate ? new Date(rawDate).getTime() : 0;
+
+            if (submissionTime > 0 && submissionTime < absolutePioneer.time) {
+                absolutePioneer.time = submissionTime;
+                absolutePioneer.name = s.name;
+                absolutePioneer.dateStr = rawDate;
+            }
+
+            if (!stats[s.name]) {
+                stats[s.name] = { name: s.name, scores: [], rawEntries: [], high: 0, low: Infinity, total: 0 };
+            }
             stats[s.name].scores.push(val);
             stats[s.name].total += val;
-            stats[s.name].rawEntries.push({ val: val, time: time });
+            stats[s.name].rawEntries.push({ val: val, time: submissionTime });
             if (val > stats[s.name].high) stats[s.name].high = val;
             if (val < stats[s.name].low) stats[s.name].low = val;
         });
@@ -162,29 +153,41 @@
             p.comebackGrowth = p.rawEntries.length > 1 ? p.rawEntries[p.rawEntries.length - 1].val - p.rawEntries[0].val : 0;
             p.improvementGap = p.high - p.low;
         });
+        
         const sorted = [...playerList].sort((a, b) => b.high - a.high);
 
+        // Render Leaderboard
         document.getElementById('leaderboard').innerHTML = sorted.map((p, i) => `
             <div class="leaderboard-item ${i === 0 ? 'first-place' : ''}">
                 <div class="rank">${i === 0 ? '👑' : (i + 1) + '.'}</div>
                 <img src="${avatarDir}${p.name.trim().toLowerCase().replace(/\s+/g, '_')}.gif" class="avatar" onerror="this.style.display='none'">
-                <div class="score-details"><div class="username">${p.name}</div><div class="score">${p.high.toLocaleString()}</div></div>
+                <div class="score-details">
+                    <div class="username">${p.name}</div>
+                    <div class="score">${p.high.toLocaleString()}</div>
+                </div>
             </div>`).join('');
 
-        // Achievements Logic
-        const improved = [...playerList].sort((a, b) => b.improvementGap - a.improvementGap)[0];
+        // Original Achievement Calculations
+        const mostImproved = [...playerList].sort((a, b) => b.improvementGap - a.improvementGap)[0];
+        let comebackCandidates = [...playerList].sort((a, b) => b.comebackGrowth - a.comebackGrowth);
+        const comebackKid = (comebackCandidates.length > 1 && mostImproved && comebackCandidates[0].name === mostImproved.name) ? comebackCandidates[1] : comebackCandidates[0];
+        let shooterCandidates = [...playerList].sort((a, b) => b.avg - a.avg);
+        const takenNames = [mostImproved ? mostImproved.name : "", comebackKid ? comebackKid.name : ""];
+        let shooter = shooterCandidates.find(p => !takenNames.includes(p.name)) || shooterCandidates[0];
+
         const grinder = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
-        const shooter = [...playerList].sort((a, b) => b.avg - a.avg)[0];
         const billionaires = playerList.filter(p => p.high >= 1000000000);
         const luckyWinner = playerList[Math.floor(Math.random() * playerList.length)];
-        let comebackCandidates = [...playerList].sort((a, b) => b.comebackGrowth - a.comebackGrowth);
-        const comebackKid = (comebackCandidates.length > 1 && improved && comebackCandidates[0].name === improved.name) ? comebackCandidates[1] : comebackCandidates[0];
 
+        // Render Achievements
         let h = "";
-        if (pioneer.time !== Infinity) h += `<div class="achievement-card fast-draw-card"><div class="achievement-title">🔫 Fast Draw</div><div class="achievement-winner">${pioneer.name}</div><div class="achievement-detail">First Entry: ${new Date(pioneer.dateStr).toLocaleDateString()}</div></div>`;
+        if (absolutePioneer && absolutePioneer.time !== Infinity) {
+            const d = new Date(absolutePioneer.dateStr);
+            h += `<div class="achievement-card fast-draw-card"><div class="achievement-title">🔫 Fast Draw</div><div class="achievement-winner">${absolutePioneer.name}</div><div class="achievement-detail">First Entry: ${d.toLocaleDateString()}</div></div>`;
+        }
         if (shooter) h += `<div class="achievement-card sharpshooter-card"><div class="achievement-title">🎯 Sharpshooter</div><div class="achievement-winner">${shooter.name}</div><div class="achievement-detail">Avg: ${Math.round(shooter.avg).toLocaleString()}</div></div>`;
         if (comebackKid && comebackKid.comebackGrowth > 0) h += `<div class="achievement-card comeback-card"><div class="achievement-title">🔄 Comeback Kid</div><div class="achievement-winner">${comebackKid.name}</div><div class="achievement-detail">+${comebackKid.comebackGrowth.toLocaleString()} Growth</div></div>`;
-        if (improved) h += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${improved.name}</div><div class="achievement-detail">Gap: +${improved.improvementGap.toLocaleString()}</div></div>`;
+        if (mostImproved) h += `<div class="achievement-card"><div class="achievement-title">📈 Most Improved</div><div class="achievement-winner">${mostImproved.name}</div><div class="achievement-detail">Gap: +${mostImproved.improvementGap.toLocaleString()}</div></div>`;
         if (grinder) h += `<div class="achievement-card"><div class="achievement-title">🕹️ Most Played</div><div class="achievement-winner">${grinder.name}</div><div class="achievement-detail">${grinder.scores.length} games</div></div>`;
         if (luckyWinner) h += `<div class="achievement-card burns-card"><div class="achievement-title">☢️ C. Montgomery Burns Award</div><div class="achievement-winner">${luckyWinner.name}</div><div class="achievement-detail">Excellent!</div></div>`;
         if (billionaires.length > 0) billionaires.forEach(b => { h += `<div class="achievement-card billionaire-card"><div class="achievement-title">💰 Billionaires Club</div><div class="achievement-winner">${b.name}</div></div>`; });
