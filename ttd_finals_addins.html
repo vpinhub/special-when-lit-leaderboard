@@ -57,7 +57,7 @@
     <img id="gameLogo" src="" alt="" class="header-image" style="display:none;">
     <div class="leaderboard-grid" id="leaderboard"></div>
     <div class="footer-section">
-        <h1 id="gameTitle">Room 700: Checking for scores...</h1>
+        <h1 id="gameTitle">Loading Room 700 Data...</h1>
         <h2 id="date"></h2>
         <div class="achievements-container" id="achievements"></div>
     </div>
@@ -70,64 +70,77 @@
     async function fetchData() {
         try {
             const [iscoredRes, vpsRes] = await Promise.all([fetch(ISCORED_API), fetch(VPS_DB_URL)]);
-            let iscoredData = await iscoredRes.json();
+            const iscoredData = await iscoredRes.json();
             const vpsData = await vpsRes.json();
             
-            // Check for AllOrigins wrapping
-            if (iscoredData.contents) iscoredData = JSON.parse(iscoredData.contents);
-            if (!iscoredData || !Array.isArray(iscoredData)) {
-                 document.getElementById('gameTitle').textContent = "Room 700: Data Sync Pending...";
-                 return;
-            }
+            if (!iscoredData || !Array.isArray(iscoredData)) return;
 
             let activeGame = null;
             let latestScoreTime = 0;
             
-            // Priority 1: Game with a tag AND recent scores
+            // Find most recent game that has scores AND a tag
             iscoredData.forEach(game => {
-                const hasTag = (game.tags && (game.tags.includes('game=') || game.tags.includes('vpsId:') || game.tags.includes('fileType=')));
-                if (hasTag && game.scores && game.scores.length > 0) {
-                    game.scores.forEach(s => {
-                        const t = new Date(s.date_added || s.timestamp).getTime();
-                        if (t > latestScoreTime) { latestScoreTime = t; activeGame = game; }
-                    });
+                if (game.tags && game.tags.length > 5) {
+                    if (game.scores && game.scores.length > 0) {
+                        game.scores.forEach(s => {
+                            const t = new Date(s.date_added || s.timestamp).getTime();
+                            if (t > latestScoreTime) { latestScoreTime = t; activeGame = game; }
+                        });
+                    }
                 }
             });
 
-            // Priority 2: Fallback to the first game in the room that has a tag (even if no scores)
+            // Fallback to first tagged game if no scores found
             if (!activeGame) {
-                activeGame = iscoredData.find(g => g.tags && (g.tags.includes('game=') || g.tags.includes('vpsId:')));
+                activeGame = iscoredData.find(g => g.tags && g.tags.length > 5);
             }
 
             if (activeGame) {
                 renderPage(activeGame, vpsData);
             } else {
-                document.getElementById('gameTitle').textContent = "Room 700: No Tagged Table Found";
+                document.getElementById('gameTitle').textContent = "No Tagged Table Found in Room 700";
             }
         } catch (e) { 
-            console.error("Error:", e); 
-            document.getElementById('gameTitle').textContent = "Room 700: Connection Error";
+            console.error("Sync Error:", e); 
         }
     }
 
     function renderPage(game, vpsDb) {
-        // Robust regex to find VPS ID from various tag formats
-        const vpsIdMatch = game.tags.match(/(?:game=|vpsId:)([a-zA-Z0-9]+)/);
-        const vpsId = vpsIdMatch ? vpsIdMatch[1] : null;
+        // IMPROVED TAG PARSING
+        // Looks for an 8-character ID (like hLb8ANDt) that follows "game=" or "vpsId:"
+        // or just exists in the string.
+        let vpsId = null;
+        const tag = game.tags;
+        
+        const vpsMatch = tag.match(/(?:game=|vpsId:)([a-zA-Z0-9]{8,12})/i) || tag.match(/[a-zA-Z0-9]{8,12}/);
+        if (vpsMatch) vpsId = vpsMatch[0].replace('game=', '').replace('vpsId:', '');
+
         const vpsInfo = vpsDb.find(v => v.id === vpsId);
 
+        // Name Formatting
         let displayName = game.game_name;
         if (vpsInfo) {
             displayName = `${vpsInfo.name} (${vpsInfo.manufacturer || 'Unknown'} ${vpsInfo.year || ''})`;
         }
         document.getElementById('gameTitle').textContent = displayName;
 
+        // Image Selection Logic
         const logo = document.getElementById('gameLogo');
         const vpsImg = vpsInfo?.tableFiles?.[0]?.imgUrl || vpsInfo?.b2sFiles?.[0]?.imgUrl;
+        
         logo.src = `https://iscored.info/community/images/games/game${game.game_id}`;
         logo.style.display = 'block';
-        logo.onerror = () => { if (vpsImg && logo.src !== vpsImg) logo.src = vpsImg; };
+        
+        // Error handling for image fallback
+        logo.onerror = () => {
+            if (vpsImg && logo.src !== vpsImg) {
+                logo.src = vpsImg;
+            } else {
+                logo.style.display = 'none';
+            }
+        };
 
+        // Render Scores
         const stats = {};
         let pioneer = { name: "N/A", time: Infinity, dateStr: "" };
         game.scores.forEach(s => {
@@ -158,6 +171,7 @@
                 <div class="score-details"><div class="username">${p.name}</div><div class="score">${p.high.toLocaleString()}</div></div>
             </div>`).join('');
 
+        // Achievements Logic
         const improved = [...playerList].sort((a, b) => b.improvementGap - a.improvementGap)[0];
         const grinder = [...playerList].sort((a, b) => b.scores.length - a.scores.length)[0];
         const shooter = [...playerList].sort((a, b) => b.avg - a.avg)[0];
@@ -174,6 +188,7 @@
         if (grinder) h += `<div class="achievement-card"><div class="achievement-title">🕹️ Most Played</div><div class="achievement-winner">${grinder.name}</div><div class="achievement-detail">${grinder.scores.length} games</div></div>`;
         if (luckyWinner) h += `<div class="achievement-card burns-card"><div class="achievement-title">☢️ C. Montgomery Burns Award</div><div class="achievement-winner">${luckyWinner.name}</div><div class="achievement-detail">Excellent!</div></div>`;
         if (billionaires.length > 0) billionaires.forEach(b => { h += `<div class="achievement-card billionaire-card"><div class="achievement-title">💰 Billionaires Club</div><div class="achievement-winner">${b.name}</div></div>`; });
+        
         document.getElementById('achievements').innerHTML = h;
         document.getElementById('date').textContent = new Date().toLocaleDateString();
     }
