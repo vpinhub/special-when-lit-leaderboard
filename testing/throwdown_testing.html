@@ -11,18 +11,15 @@
         .medieval { font-family: 'MedievalSharp', cursive; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         .ttd-accent { border-color: #f97316; box-shadow: 0 0 15px rgba(249, 115, 22, 0.2); }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .achievement-card { transition: all 0.3s ease; }
+        .achievement-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.12); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
     <header class="bg-orange-500 shadow-md sticky top-0 z-40">
         <div class="container mx-auto px-4 py-4 flex justify-center">
-            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white uppercase italic">
-                Thursday Throwdown
-            </h1>
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white uppercase italic text-center">Thursday Throwdown</h1>
         </div>
     </header>
 
@@ -47,30 +44,25 @@
                     <h3 class="text-xl font-bold text-orange-400 mb-4 tracking-tight">Rules & Submission</h3>
                     <ul class="list-disc list-inside space-y-3 text-gray-300 text-sm">
                         <li>All scores must be submitted via <strong>iScored</strong>.</li>
-                        <li>Manual submissions to iScored require a <strong>photo for verification</strong>.</li>
-                        <li>VPinStudio auto-submissions are permitted.</li>
-                        <li>Players are responsible for <strong>verifying their score has posted</strong>.</li>
-                        <li>No table or script modifications affecting gameplay are allowed.</li>
                         <li><strong>Deadline:</strong> Thursday at 2:00 PM Eastern Time.</li>
+                        <li>Photos required for manual submissions.</li>
                     </ul>
                     <div class="mt-6 pt-4 border-t border-white/10 text-center">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-4 tracking-widest">Hosted by GCC</p>
-                        <a href="https://www.iScored.info/SMAUG" target="_blank" class="block w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl text-center transition shadow-lg">
-                            SUBMIT TO ISCORED
-                        </a>
+                        <a href="https://www.iScored.info/SMAUG" target="_blank" class="block w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl text-center transition shadow-lg uppercase tracking-wider">Submit to iScored</a>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-7 space-y-6">
-                <div id="achievements" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                <div id="achievements" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                
                 <div class="glass rounded-2xl overflow-hidden shadow-2xl">
                     <div class="bg-white/5 px-6 py-4 border-b border-white/10 flex justify-between items-center">
                         <span class="font-bold uppercase tracking-widest text-xs text-gray-400 italic">Live Standings</span>
                         <span id="player-count" class="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-1 rounded">0 PLAYERS</span>
                     </div>
                     <div id="leaderboard" class="divide-y divide-white/5 max-h-[800px] overflow-y-auto">
-                        <div class="p-20 text-center text-gray-500 italic">Synchronizing...</div>
+                        <div class="p-20 text-center text-gray-500 italic">Synchronizing realm data...</div>
                     </div>
                 </div>
             </div>
@@ -78,7 +70,7 @@
     </main>
 
     <script>
-        // Configuration
+        const AVATAR_BASE = "http://vpinhub.github.io/special-when-lit-leaderboard/img/";
         const ROOM_ID = "700";
         const PRIMARY_API = `https://virtualpinballchat.com:8443/vpc/api/v1/iscored?roomId=${ROOM_ID}`;
         const PROXY_URL = "https://api.allorigins.win/raw?url=";
@@ -90,86 +82,74 @@
         async function init() {
             calculateTTDPeriod();
             try {
-                // Fetch VPS Database first
                 const dbRes = await fetch(VPS_DATA);
                 vpsDB = await dbRes.json();
                 
                 let scoreData = null;
-
                 try {
-                    // 1. Try VPC Direct
-                    console.log("Attempting direct VPC endpoint...");
                     const directRes = await fetch(PRIMARY_API);
-                    if (!directRes.ok) throw new Error("Direct endpoint failed");
+                    if (!directRes.ok) throw new Error();
                     scoreData = await directRes.json();
-                } catch (directError) {
-                    // 2. Fallback to Proxy
-                    console.warn("Direct VPC failed (CORS/Network). Falling back to iScored proxy...", directError);
+                } catch (e) {
                     const backupRes = await fetch(BACKUP_API);
                     scoreData = await backupRes.json();
                 }
-
                 if (scoreData) processTournament(scoreData);
-            } catch (err) { 
-                console.error("Critical error in init:", err);
-                document.getElementById('leaderboard').innerHTML = `<div class="p-10 text-center text-red-400">Unable to retrieve tournament data.</div>`;
-            }
+            } catch (err) { console.error("Data Load Error:", err); }
         }
 
         function calculateTTDPeriod() {
-            const cutoffDay = 4; // Thursday
-            const cutoffHour = 14; // 2:00 PM
-            const cutoffTimezone = 'America/New_York';
-            const nowTZ = new Date(new Date().toLocaleString('en-US', { timeZone: cutoffTimezone }));
-            
+            const cutoffDay = 4, cutoffHour = 14;
+            const nowTZ = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
             let endDate = new Date(nowTZ);
             endDate.setHours(cutoffHour, 0, 0, 0);
-            
             const daysToAdd = (cutoffDay - nowTZ.getDay() + 7) % 7;
             endDate.setDate(endDate.getDate() + daysToAdd);
-            
-            if (daysToAdd === 0 && nowTZ.getHours() >= cutoffHour) {
-                endDate.setDate(endDate.getDate() + 7);
-            }
-            
-            let startDate = new Date(endDate);
-            startDate.setDate(startDate.getDate() - 7);
-            
+            if (daysToAdd === 0 && nowTZ.getHours() >= cutoffHour) endDate.setDate(endDate.getDate() + 7);
+            let startDate = new Date(endDate); startDate.setDate(startDate.getDate() - 7);
             const options = { month: 'long', day: 'numeric' };
             document.getElementById('event-period').innerText = `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
         }
 
         function processTournament(data) {
             const playerStats = {};
-            let tournamentGame = null;
-
-            // Find game with proper tournament tags
-            for (let game of data) {
-                if (JSON.stringify(game).includes('game=')) { tournamentGame = game; break; }
-            }
-            if (!tournamentGame) tournamentGame = data[0];
+            let tournamentGame = data.find(g => JSON.stringify(g).includes('game=')) || data[0];
+            let pioneer = { name: "N/A", time: Infinity, dateStr: "" };
 
             if (tournamentGame && tournamentGame.scores) {
                 tournamentGame.scores.forEach(s => {
                     const val = parseInt(s.score, 10);
-                    if (!playerStats[s.name]) playerStats[s.name] = { name: s.name, scores: [], high: 0, total: 0 };
+                    const rawDate = s.date_added || s.date || s.timestamp;
+                    const submissionTime = rawDate ? new Date(rawDate).getTime() : 0;
+
+                    if (submissionTime > 0 && submissionTime < pioneer.time) {
+                        pioneer.time = submissionTime; pioneer.name = s.name; pioneer.dateStr = rawDate;
+                    }
+
+                    if (!playerStats[s.name]) {
+                        playerStats[s.name] = { name: s.name, scores: [], rawEntries: [], high: 0, low: Infinity, total: 0 };
+                    }
                     playerStats[s.name].scores.push(val);
                     playerStats[s.name].total += val;
+                    playerStats[s.name].rawEntries.push({ val, time: submissionTime });
                     if (val > playerStats[s.name].high) playerStats[s.name].high = val;
+                    if (val < playerStats[s.name].low) playerStats[s.name].low = val;
                 });
             }
 
-            renderLeaderboard(Object.values(playerStats).sort((a,b) => b.high - a.high));
-            renderStats(Object.values(playerStats));
+            const playerList = Object.values(playerStats);
+            playerList.forEach(p => {
+                p.avg = p.total / p.scores.length;
+                p.rawEntries.sort((a, b) => a.time - b.time);
+                p.comebackGrowth = p.rawEntries.length > 1 ? p.rawEntries[p.rawEntries.length - 1].val - p.rawEntries[0].val : 0;
+                p.improvementGap = p.high - p.low;
+            });
 
-            // Extract VPS Tags for metadata
+            renderLeaderboard(playerList.sort((a,b) => b.high - a.high));
+            renderAdvancedAchievements(playerList, pioneer);
+
             const tagMatch = JSON.stringify(tournamentGame).match(/game=([a-zA-Z0-9-]+)[^#]*#([a-zA-Z0-9-]+)/);
-            if (tagMatch) {
-                const table = vpsDB.find(t => t.id === tagMatch[1]);
-                renderTable(table, tagMatch[1], tagMatch[2]);
-            } else {
-                renderTable(vpsDB.find(t => t.name.toLowerCase().includes(tournamentGame.longName.toLowerCase())));
-            }
+            renderTable(tagMatch ? vpsDB.find(t => t.id === tagMatch[1]) : vpsDB.find(t => t.name.toLowerCase().includes(tournamentGame.longName.toLowerCase())), tagMatch?.[1], tagMatch?.[2]);
         }
 
         function renderLeaderboard(players) {
@@ -178,33 +158,45 @@
                 <div class="flex items-center justify-between px-6 py-4 hover:bg-white/5 transition">
                     <div class="flex items-center gap-4">
                         <span class="w-6 font-black text-xl italic ${i < 3 ? 'text-orange-500' : 'text-gray-700'}">${i+1}</span>
-                        <img src="http://vpinhub.github.io/special-when-lit-leaderboard/img/${p.name.toLowerCase().replace(/\s+/g, '_')}.gif" class="w-10 h-10 rounded-full border border-white/10" onerror="this.src='https://via.placeholder.com/40?text=?'">
+                        <img src="${AVATAR_BASE}${p.name.toLowerCase().replace(/\s+/g, '_')}.gif" class="w-10 h-10 rounded-full border border-white/10 object-cover" onerror="this.src='https://via.placeholder.com/40?text=?'">
                         <span class="font-bold text-sm text-gray-200">${p.name}</span>
                     </div>
                     <span class="font-mono font-bold ${i === 0 ? 'text-yellow-400' : 'text-gray-400'}">${p.high.toLocaleString()}</span>
                 </div>`).join('');
         }
 
-        function renderStats(players) {
+        function renderAdvancedAchievements(players, pioneer) {
             if (!players.length) return;
-            const sharpshooter = [...players].sort((a,b) => (b.total/b.scores.length) - (a.total/a.scores.length))[0];
+            const shooter = [...players].sort((a,b) => b.avg - a.avg)[0];
+            const improved = [...players].sort((a,b) => b.improvementGap - a.improvementGap)[0];
             const grinder = [...players].sort((a,b) => b.scores.length - a.scores.length)[0];
+            const comeback = [...players].sort((a,b) => b.comebackGrowth - a.comebackGrowth)[0];
             
-            document.getElementById('achievements').innerHTML = `
-                <div class="glass p-5 rounded-2xl border-l-4 border-orange-500 flex items-center justify-between">
-                    <div><div class="medieval text-[10px] text-orange-400 uppercase">🎯 Sharpshooter</div><div class="font-bold text-sm uppercase italic">${sharpshooter.name}</div></div>
-                </div>
-                <div class="glass p-5 rounded-2xl border-l-4 border-blue-500 flex items-center justify-between">
-                    <div><div class="medieval text-[10px] text-blue-400 uppercase">🕹️ The Grinder</div><div class="font-bold text-sm uppercase italic">${grinder.name}</div></div>
+            // Randomly select a player for the Burns Award every refresh/fetch
+            const burns = players[Math.floor(Math.random() * players.length)];
+
+            let h = "";
+            const card = (icon, title, name, detail, color) => `
+                <div class="glass p-4 rounded-xl border-l-4 ${color} achievement-card flex flex-col justify-center">
+                    <div class="medieval text-[10px] text-gray-400 uppercase tracking-wider">${icon} ${title}</div>
+                    <div class="font-bold text-sm uppercase italic text-white truncate">${name}</div>
+                    <div class="text-[10px] text-gray-500 font-medium">${detail}</div>
                 </div>`;
+
+            if (pioneer.name !== "N/A") h += card("🔫", "Fast Draw", pioneer.name, `First Entry: ${new Date(pioneer.dateStr).toLocaleDateString()}`, "border-red-500");
+            if (shooter) h += card("🎯", "Sharpshooter", shooter.name, `Avg: ${Math.round(shooter.avg).toLocaleString()}`, "border-orange-500");
+            if (comeback && comeback.comebackGrowth > 0) h += card("🔄", "Comeback Kid", comeback.name, `+${comeback.comebackGrowth.toLocaleString()} Growth`, "border-purple-500");
+            if (improved) h += card("📈", "Most Improved", improved.name, `Gap: +${improved.improvementGap.toLocaleString()}`, "border-green-500");
+            if (grinder) h += card("🕹️", "Most Played", grinder.name, `${grinder.scores.length} games`, "border-blue-500");
+            if (burns) h += card("☢️", "C. Montgomery Burns Award", burns.name, "Excellent!", "border-lime-500");
+
+            document.getElementById('achievements').innerHTML = h;
         }
 
         function renderTable(table, gameId, releaseId) {
             const container = document.getElementById('table-card');
             if (!table) return;
-            const helperUrl = `https://vpinhub.github.io/tournamenthelper/?tableId=${gameId}&releaseId=${releaseId}&ttd`;
             const img = table.b2sFiles?.[0]?.imgUrl || table.tableFiles?.[0]?.imgUrl || "https://via.placeholder.com/400x200";
-
             container.innerHTML = `
                 <div class="space-y-4">
                     <div class="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl">
@@ -214,10 +206,9 @@
                             <p class="text-[10px] text-orange-400 font-bold uppercase tracking-widest">${table.manufacturer} • ${table.year}</p>
                         </div>
                     </div>
-                    <a href="${helperUrl}" target="_blank" class="block w-full bg-white text-black text-center py-4 rounded-xl font-black text-xs hover:bg-orange-500 transition">DOWNLOAD TABLE</a>
+                    <a href="https://vpinhub.github.io/tournamenthelper/?tableId=${gameId}&releaseId=${releaseId}&ttd" target="_blank" class="block w-full bg-white text-black text-center py-4 rounded-xl font-black text-xs hover:bg-orange-500 transition shadow-lg">Download Table Files</a>
                 </div>`;
         }
-
         init();
     </script>
 </body>
