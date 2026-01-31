@@ -65,7 +65,7 @@
             let data;
 
             try {
-                // 1. Try the new direct endpoint first
+                // 1. Try the new VPC endpoint first
                 console.log("Attempting direct endpoint...");
                 const response = await fetch(primaryUrl);
                 if (!response.ok) throw new Error("Primary endpoint response not OK");
