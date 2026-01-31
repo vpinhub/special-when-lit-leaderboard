@@ -51,8 +51,11 @@
     <div id="leaderboard-container"></div>
 
     <script>
-        // Updated to VPC endpoint
-        const apiEndpoint = "https://virtualpinballchat.com:8443/vpc/api/v1/iscored?roomId=1011";
+        // Configuration
+        const roomId = "1011";
+        const primaryUrl = `https://virtualpinballchat.com:8443/vpc/api/v1/iscored?roomId=${roomId}`;
+        const backupTarget = `https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=${roomId}`;
+        const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(backupTarget)}`;
         const imageBaseUrl = "img/";
 
         function formatNumber(num) {
@@ -60,40 +63,56 @@
         }
 
         async function fetchAndDisplayLeaderboard() {
+            let data;
+
             try {
-                const response = await fetch(apiEndpoint);
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                
-                const data = await response.json();
-
-                // Flatten all game scores into a single list
-                const allScores = data.flatMap(game => 
-                    game.scores.map(score => ({
-                        name: score.name,
-                        score: score.score
-                    }))
-                );
-
-                // Consolidate scores: keep only the highest score for each unique player name
-                const playerHighScores = {};
-                allScores.forEach(p => {
-                    const currentScore = parseInt(p.score, 10);
-                    if (!playerHighScores[p.name] || currentScore > playerHighScores[p.name].score) {
-                        playerHighScores[p.name] = {
-                            name: p.name,
-                            score: currentScore
-                        };
-                    }
-                });
-
-                // Sort by score descending
-                const sortedPlayers = Object.values(playerHighScores).sort((a, b) => b.score - a.score);
-
-                buildLeaderboardView(sortedPlayers);
+                // 1. Try the direct VPC endpoint first
+                console.log("Attempting VPC endpoint...");
+                const response = await fetch(primaryUrl);
+                if (!response.ok) throw new Error(`Primary status: ${response.status}`);
+                data = await response.json();
             } catch (error) {
-                console.error("Failed to load leaderboard:", error);
-                document.getElementById("leaderboard-container").innerHTML = `<p style="color: white;">Failed to load scores.</p>`;
+                // 2. Fallback to AllOrigins proxy if direct access is blocked
+                console.warn("VPC endpoint failed/blocked. Trying iScored proxy backup...", error);
+                try {
+                    const backupResponse = await fetch(proxiedUrl);
+                    if (!backupResponse.ok) throw new Error(`Backup status: ${backupResponse.status}`);
+                    data = await backupResponse.json();
+                } catch (backupError) {
+                    console.error("Both endpoints failed:", backupError);
+                    document.getElementById("leaderboard-container").innerHTML = `<p style="color: white;">Failed to load scores.</p>`;
+                    return;
+                }
             }
+
+            processLeaderboardData(data);
+        }
+
+        function processLeaderboardData(data) {
+            // Flatten all game scores into a single list
+            const allScores = data.flatMap(game => 
+                game.scores.map(score => ({
+                    name: score.name,
+                    score: score.score
+                }))
+            );
+
+            // Consolidate scores: keep only the highest score for each unique player name
+            const playerHighScores = {};
+            allScores.forEach(p => {
+                const currentScore = parseInt(p.score, 10);
+                if (!playerHighScores[p.name] || currentScore > playerHighScores[p.name].score) {
+                    playerHighScores[p.name] = {
+                        name: p.name,
+                        score: currentScore
+                    };
+                }
+            });
+
+            // Sort by score descending
+            const sortedPlayers = Object.values(playerHighScores).sort((a, b) => b.score - a.score);
+
+            buildLeaderboardView(sortedPlayers);
         }
 
         function buildLeaderboardView(players) {
