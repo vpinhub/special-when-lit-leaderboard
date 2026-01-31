@@ -67,49 +67,64 @@
     </style>
 </head>
 <body>
-    <div id="leaderboard-container">
-        </div>
+    <div id="leaderboard-container"></div>
 
     <script>
-        const targetUrl = "https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=700";
+        // Configuration for Room 700
+        const roomId = "700";
+        const primaryUrl = `https://virtualpinballchat.com:8443/vpc/api/v1/iscored?roomId=${roomId}`;
+        const targetUrl = `https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=${roomId}`;
         const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
         const imageBaseUrl = "img/";
 
         async function fetchAndDisplayLeaderboard() {
+            let data;
+            
             try {
-                const response = await fetch(proxiedUrl);
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                
-                const data = await response.json();
-
-                const allScores = data.flatMap(game => 
-                    game.scores.map(score => ({
-                        name: score.name,
-                        score: score.score,
-                        game: game.longName
-                    }))
-                );
-                
-                const playerHighScores = {};
-                allScores.forEach(player => {
-                    const currentScore = parseInt(player.score, 10);
-                    if (!playerHighScores[player.name] || currentScore > playerHighScores[player.name].score) {
-                        playerHighScores[player.name] = {
-                            name: player.name,
-                            score: currentScore
-                        };
-                    }
-                });
-
-                const sortedPlayers = Object.values(playerHighScores).sort((a, b) => b.score - a.score);
-
-                buildLeaderboardView(sortedPlayers);
-
+                // 1. Try VPC Direct Endpoint
+                console.log("Attempting VPC direct endpoint...");
+                const response = await fetch(primaryUrl);
+                if (!response.ok) throw new Error(`Primary failed: ${response.status}`);
+                data = await response.json();
             } catch (error) {
-                console.error("Failed to load leaderboard:", error);
-                const container = document.getElementById("leaderboard-container");
-                container.innerHTML = `<p>Failed to load scores.</p>`;
+                // 2. Fallback to AllOrigins Proxy
+                console.warn("VPC direct failed (CORS/Network). Trying proxy backup...", error);
+                try {
+                    const backupResponse = await fetch(proxiedUrl);
+                    if (!backupResponse.ok) throw new Error(`Backup failed: ${backupResponse.status}`);
+                    data = await backupResponse.json();
+                } catch (backupError) {
+                    console.error("Both endpoints failed:", backupError);
+                    document.getElementById("leaderboard-container").innerHTML = `<p>Failed to load scores.</p>`;
+                    return;
+                }
             }
+
+            processLeaderboardData(data);
+        }
+
+        function processLeaderboardData(data) {
+            const allScores = data.flatMap(game => 
+                game.scores.map(score => ({
+                    name: score.name,
+                    score: score.score,
+                    game: game.longName
+                }))
+            );
+
+            const playerHighScores = {};
+            allScores.forEach(player => {
+                const currentScore = parseInt(player.score, 10);
+                if (!playerHighScores[player.name] || currentScore > playerHighScores[player.name].score) {
+                    playerHighScores[player.name] = {
+                        name: player.name,
+                        score: currentScore
+                    };
+                }
+            });
+
+            const sortedPlayers = Object.values(playerHighScores).sort((a, b) => b.score - a.score);
+            buildLeaderboardView(sortedPlayers);
         }
 
         function buildLeaderboardView(players) {
@@ -122,7 +137,7 @@
 
                 const rank = `<span class="rank">#${index + 1}</span>`;
                 
-                // **FIX APPLIED HERE:** Convert the player name to lowercase
+                // Avatar filename fix: lowercase and underscore
                 const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
                 const avatarUrl = imageBaseUrl + avatarFileName;
                 
@@ -142,6 +157,5 @@
 
         document.addEventListener('DOMContentLoaded', fetchAndDisplayLeaderboard);
     </script>
-
 </body>
 </html>
