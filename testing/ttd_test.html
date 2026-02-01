@@ -6,137 +6,65 @@
     <title>Leaderboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Encode+Sans&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Encode Sans', sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .avatar {
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            margin-right: 15px;
-            object-fit: cover;
-            background-color: #e0e0e0;
-        }
-        .score-details {
-            flex: 1;
-            text-align: left;
-            min-width: 0; 
-        }
-        .username {
-            font-weight: 600;
-            font-size: 16px;
-            color: #333;
-        }
-        .score {
-            font-weight: bold;
-            font-size: 20px;
-            color: black;
-        }
+        body { font-family: 'Encode Sans', sans-serif; margin: 0; padding: 20px; }
+        .leaderboard-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        .avatar { border-radius: 50%; width: 50px; height: 50px; margin-right: 15px; object-fit: cover; background-color: #e0e0e0; }
+        .score-details { flex: 1; text-align: left; min-width: 0; }
+        .username { font-weight: 600; font-size: 16px; color: #333; }
+        .score { font-weight: bold; font-size: 20px; color: black; }
     </style>
 </head>
 <body>
     <div id="leaderboard-container"></div>
-
     <script>
-        // Configuration
         const roomId = "700";
-        const primaryUrl = `https://virtualpinballchat.com:8443/vpc/api/v1/iscored?roomId=${roomId}`;
+        const primaryUrl = `https://virtualpinballchat.com/vpc/api/v1/iscored?roomId=${roomId}`;
         const backupTarget = `https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=${roomId}`;
         const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(backupTarget)}`;
         const imageBaseUrl = "img/";
 
-        function formatNumber(num) {
-            return num.toLocaleString();
-        }
-
         async function fetchAndDisplayLeaderboard() {
             let data;
-
             try {
-                // 1. Try the new VPC endpoint first
-                console.log("Attempting direct endpoint...");
                 const response = await fetch(primaryUrl);
-                if (!response.ok) throw new Error("Primary endpoint response not OK");
+                if (!response.ok) throw new Error("Primary failed");
                 data = await response.json();
             } catch (error) {
-                // 2. Fallback to CORS proxy if primary fails or is blocked
-                console.warn("Direct access failed (likely CORS). Using proxy backup...", error);
                 try {
                     const backupResponse = await fetch(proxiedUrl);
-                    if (!backupResponse.ok) throw new Error("Backup failed");
                     data = await backupResponse.json();
                 } catch (backupError) {
-                    console.error("All fetch attempts failed", backupError);
                     document.getElementById("leaderboard-container").innerHTML = `<p>Failed to load scores.</p>`;
                     return;
                 }
             }
-
             processData(data);
         }
 
         function processData(data) {
-            // Flatten scores from all games
-            const allScores = data.flatMap(game => 
-                game.scores.map(score => ({
-                    name: score.name,
-                    score: score.score
-                }))
-            );
-
-            // Consolidate: Keep only the highest score per player
+            const allScores = data.flatMap(game => game.scores.map(score => ({ name: score.name, score: score.score })));
             const playerHighScores = {};
             allScores.forEach(p => {
                 const currentScore = parseInt(p.score, 10);
                 if (!playerHighScores[p.name] || currentScore > playerHighScores[p.name].score) {
-                    playerHighScores[p.name] = {
-                        name: p.name,
-                        score: currentScore
-                    };
+                    playerHighScores[p.name] = { name: p.name, score: currentScore };
                 }
             });
-
-            // Sort high to low
             const sortedPlayers = Object.values(playerHighScores).sort((a, b) => b.score - a.score);
             buildLeaderboardView(sortedPlayers);
         }
 
         function buildLeaderboardView(players) {
             const container = document.getElementById("leaderboard-container");
-            container.innerHTML = ""; 
-
-            players.forEach((player) => {
-                const item = document.createElement('div');
-                item.classList.add('leaderboard-item');
-                
-                const avatarFileName = `${player.name.toLowerCase().replace(/\s+/g, '_')}.gif`;
-                const avatarUrl = imageBaseUrl + avatarFileName;
-                
-                const avatar = `<img src="${avatarUrl}" alt="${player.name}" class="avatar" onerror="this.style.display='none'">`;
-
-                item.innerHTML = `
-                    ${avatar}
+            container.innerHTML = players.map(player => `
+                <div class="leaderboard-item">
+                    <img src="${imageBaseUrl}${player.name.toLowerCase().replace(/\s+/g, '_')}.gif" class="avatar" onerror="this.style.display='none'">
                     <div class="score-details">
                         <div class="username">${player.name}</div>
-                        <div class="score">${formatNumber(player.score)}</div>
+                        <div class="score">${player.score.toLocaleString()}</div>
                     </div>
-                `;
-                container.appendChild(item);
-            });
+                </div>`).join('');
         }
-
         document.addEventListener('DOMContentLoaded', fetchAndDisplayLeaderboard);
     </script>
 </body>
