@@ -80,12 +80,14 @@
         const PROXY = "https://api.allorigins.win/raw?url=";
 
         async function fetchIScoredPreview(roomId, targetId, colorClass) {
-            const url = `https://virtualpinballchat.com/vpc/api/v1/iscored?roomId=${roomId}`;
+            const primaryUrl = `https://virtualpinballchat.com/vpc/api/v1/iscored?roomId=${roomId}`;
             try {
-                // Using proxy to bypass potential CORS issues on the Hub page
-                const res = await fetch(PROXY + encodeURIComponent(url));
-                const data = await res.json();
-                const game = data.find(g => g.scores && g.scores.length > 0) || data[0];
+                let response = await fetch(primaryUrl);
+                if (!response.ok) response = await fetch(PROXY + encodeURIComponent(primaryUrl));
+                const data = await response.json();
+                
+                // Fixed: Search for active table entry matching sub-page logic
+                const game = data.find(g => JSON.stringify(g).includes('game=')) || data[0];
                 const leader = game.scores.sort((a,b) => b.score - a.score)[0];
                 
                 document.getElementById(targetId).innerHTML = `
@@ -105,15 +107,18 @@
         }
 
         async function fetchVPCPreview() {
-            const url = 'https://virtualpinballchat.com/vpc/api/v1/currentWeek?channelName=competition-corner';
+            const primaryUrl = 'https://virtualpinballchat.com/vpc/api/v1/currentWeek?channelName=competition-corner';
             try {
-                const res = await fetch(PROXY + encodeURIComponent(url));
+                let res = await fetch(primaryUrl);
+                if (!res.ok) res = await fetch(PROXY + encodeURIComponent(primaryUrl));
                 const data = await res.json();
+                
+                // Fixed: Access the .table property directly from the week object
                 const leader = data.scores.sort((a,b) => b.score - a.score)[0];
                 
                 document.getElementById('vpc-preview').innerHTML = `
                     <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Current Table</div>
-                    <div class="text-sm font-bold truncate mb-5">${data.table}</div>
+                    <div class="text-sm font-bold truncate mb-5">${data.table || 'Table Unassigned'}</div>
                     <div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
                         <img src="${leader.userAvatarUrl}" class="w-8 h-8 rounded-full border border-white/10" onerror="this.src='https://via.placeholder.com/32?text=?'">
                         <div class="overflow-hidden">
@@ -127,7 +132,6 @@
             }
         }
 
-        // Initialize all previews
         fetchIScoredPreview('700', 'ttd-preview', 'text-orange-500');
         fetchIScoredPreview('1011', 'swl-preview', 'text-fuchsia-500');
         fetchVPCPreview();
