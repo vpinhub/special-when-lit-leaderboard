@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VPINHUB | Tournament Central</title>
+    <title>VPINHUB | Competition Central</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;700;900&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
@@ -20,121 +20,150 @@
 </head>
 <body class="min-h-screen hero-gradient pb-20">
 
-    <header class="container mx-auto px-6 py-12 text-center">
-        <h1 class="text-6xl md:text-8xl font-black italic tracking-tighter uppercase mb-2">VPIN<span class="text-orange-500">HUB</span></h1>
-        <p class="medieval text-gray-400 tracking-[0.3em] uppercase text-sm">Tournament Central</p>
-    </header>
+<header class="container mx-auto px-6 py-12 text-center">
+    <h1 class="text-6xl md:text-8xl font-black italic tracking-tighter uppercase mb-2">VPIN<span class="text-orange-500">HUB</span></h1>
+    <p class="medieval text-gray-400 tracking-[0.3em] uppercase text-sm">Competition Central</p>
+</header>
 
-    <main class="container mx-auto px-6 max-w-7xl">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <a href="throwdown_testing.html" class="tournament-card glass rounded-3xl p-8 border-t-4 border-orange-500 glow-orange flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-6">
-                        <span class="bg-orange-500/20 text-orange-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Weekly Series</span>
-                        <span class="text-gray-500 text-xs font-bold uppercase tracking-widest">iScored</span>
-                    </div>
-                    <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Thursday<br>Throwdown</h2>
-                    <p class="text-gray-400 text-sm mb-8">Cutoff: Thu @ 2PM EST</p>
-                    <div id="ttd-preview" class="space-y-4"></div>
+<main class="container mx-auto px-6 max-w-7xl">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <a href="throwdown_testing.html" class="tournament-card glass rounded-3xl p-8 border-t-4 border-orange-500 glow-orange flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-start mb-6">
+                    <span class="bg-orange-500/20 text-orange-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Weekly Series</span>
+                    <span class="text-gray-500 text-xs font-bold uppercase tracking-widest">iScored</span>
                 </div>
-                <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-orange-500 font-bold uppercase text-xs tracking-widest">
-                    <span>View Leaderboard</span><span>→</span>
+                <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Thursday<br>Throwdown</h2>
+                <p class="text-gray-400 text-sm mb-8">Cutoff: Thu @ 2PM EST</p>
+                <div id="ttd-preview" class="space-y-4"></div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-orange-500 font-bold uppercase text-xs tracking-widest">
+                <span>View Leaderboard</span><span>→</span>
+            </div>
+        </a>
+
+        <a href="special_when_lit_testing.html" class="tournament-card glass rounded-3xl p-8 border-t-4 border-fuchsia-600 glow-fuchsia flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-start mb-6">
+                    <span class="bg-fuchsia-500/20 text-fuchsia-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Premier Event</span>
+                    <span class="text-gray-500 text-xs font-bold uppercase tracking-widest">iScored</span>
                 </div>
-            </a>
+                <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Special<br>When Lit</h2>
+                <p class="text-gray-400 text-sm mb-8">Cutoff: Sun @ 2PM EST</p>
+                <div id="swl-preview" class="space-y-4"></div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-fuchsia-500 font-bold uppercase text-xs tracking-widest">
+                <span>View Leaderboard</span><span>→</span>
+            </div>
+        </a>
 
-            <a href="special_when_lit_testing.html" class="tournament-card glass rounded-3xl p-8 border-t-4 border-fuchsia-600 glow-fuchsia flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-6">
-                        <span class="bg-fuchsia-500/20 text-fuchsia-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Premier Event</span>
-                        <span class="text-gray-500 text-xs font-bold uppercase tracking-widest">iScored</span>
-                    </div>
-                    <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Special<br>When Lit</h2>
-                    <p class="text-gray-400 text-sm mb-8">Cutoff: Sun @ 2PM EST</p>
-                    <div id="swl-preview" class="space-y-4"></div>
+        <a href="vpc_testing.html" class="tournament-card glass rounded-3xl p-8 border-t-4 border-indigo-500 glow-indigo flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-start mb-6">
+                    <span class="bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Community Collab</span>
+                    <span class="text-gray-500 text-xs font-bold uppercase tracking-widest">Discord</span>
                 </div>
-                <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-fuchsia-500 font-bold uppercase text-xs tracking-widest">
-                    <span>View Leaderboard</span><span>→</span>
+                <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Competition<br>Corner</h2>
+                <p class="text-gray-400 text-sm mb-8">Cutoff: Mon @ 12AM PST</p>
+                <div id="vpc-preview" class="space-y-4"></div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-indigo-500 font-bold uppercase text-xs tracking-widest">
+                <span>View Leaderboard</span><span>→</span>
+            </div>
+        </a>
+
+    </div>
+</main>
+
+<script>
+const AVATAR_BASE = "http://vpinhub.github.io/special-when-lit-leaderboard/img/";
+const PROXY = "https://api.allorigins.win/raw?url=";
+
+async function getIScoredData(roomId) {
+    const primary = `https://virtualpinballchat.com/vpc/api/v1/iscored?roomId=${roomId}`;
+    const backup = `${PROXY}${encodeURIComponent(`https://iscored.info/roomCommands.php?c=getAllGamesAndScores&roomID=${roomId}`)}`;
+
+    try {
+        let res = await fetch(primary);
+        if (!res.ok) throw new Error();
+        return await res.json();
+    } catch {
+        const res = await fetch(backup);
+        return await res.json();
+    }
+}
+
+async function fetchIScoredPreview(roomId, targetId, colorClass) {
+    try {
+        const data = await getIScoredData(roomId);
+        if (!Array.isArray(data) || data.length === 0) throw new Error();
+
+        const game = data.find(g => JSON.stringify(g).includes('game=')) || data[0];
+        if (!game || !game.scores || game.scores.length === 0) throw new Error();
+
+        const leader = [...game.scores]
+            .map(s => ({ ...s, numScore: parseInt(s.score, 10) || 0 }))
+            .sort((a,b) => b.numScore - a.numScore)[0];
+
+        document.getElementById(targetId).innerHTML = `
+            <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Current Table</div>
+            <div class="text-sm font-bold truncate mb-5">${game.longName || 'Table Unassigned'}</div>
+            <div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                <img src="${AVATAR_BASE}${leader.name.toLowerCase().replace(/\s+/g, '_')}.gif"
+                     class="w-8 h-8 rounded-full border border-white/10"
+                     onerror="this.src='https://via.placeholder.com/32?text=?'">
+                <div class="overflow-hidden">
+                    <div class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">Leader</div>
+                    <div class="text-xs font-black truncate">${leader.name}</div>
                 </div>
-            </a>
-
-            <a href="vpc_testing.html" class="tournament-card glass rounded-3xl p-8 border-t-4 border-indigo-500 glow-indigo flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-6">
-                        <span class="bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Community Collab</span>
-                        <span class="text-gray-500 text-xs font-bold uppercase tracking-widest">Discord</span>
-                    </div>
-                    <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Competition<br>Corner</h2>
-                    <p class="text-gray-400 text-sm mb-8">Cutoff: Mon @ 12AM PST</p>
-                    <div id="vpc-preview" class="space-y-4"></div>
+                <div class="ml-auto ${colorClass} font-mono text-xs font-black">
+                    ${leader.numScore.toLocaleString()}
                 </div>
-                <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-indigo-500 font-bold uppercase text-xs tracking-widest">
-                    <span>View Leaderboard</span><span>→</span>
+            </div>`;
+    } catch {
+        document.getElementById(targetId).innerHTML =
+            `<div class="text-gray-600 text-xs italic">Awaiting tournament sync...</div>`;
+    }
+}
+
+async function fetchVPCPreview() {
+    const primaryUrl = 'https://virtualpinballchat.com/vpc/api/v1/currentWeek?channelName=competition-corner';
+    try {
+        let res = await fetch(primaryUrl);
+        if (!res.ok) res = await fetch(PROXY + encodeURIComponent(primaryUrl));
+        const data = await res.json();
+
+        if (!data || !data.scores || data.scores.length === 0) throw new Error();
+
+        const leader = [...data.scores]
+            .map(s => ({ ...s, numScore: parseInt(s.score, 10) || 0 }))
+            .sort((a,b) => b.numScore - a.numScore)[0];
+
+        document.getElementById('vpc-preview').innerHTML = `
+            <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Current Table</div>
+            <div class="text-sm font-bold truncate mb-5">${data.table || 'Table Unassigned'}</div>
+            <div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                <img src="${leader.userAvatarUrl}" class="w-8 h-8 rounded-full border border-white/10"
+                     onerror="this.src='https://via.placeholder.com/32?text=?'">
+                <div class="overflow-hidden">
+                    <div class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">Leader</div>
+                    <div class="text-xs font-black truncate">${leader.username}</div>
                 </div>
-            </a>
-        </div>
-    </main>
+                <div class="ml-auto text-indigo-400 font-mono text-xs font-black">
+                    ${leader.numScore.toLocaleString()}
+                </div>
+            </div>`;
+    } catch {
+        document.getElementById('vpc-preview').innerHTML =
+            `<div class="text-gray-600 text-xs italic">Awaiting week sync...</div>`;
+    }
+}
 
-    <script>
-        const AVATAR_BASE = "http://vpinhub.github.io/special-when-lit-leaderboard/img/";
-        const PROXY = "https://api.allorigins.win/raw?url=";
+fetchIScoredPreview('700', 'ttd-preview', 'text-orange-500');
+fetchIScoredPreview('1011', 'swl-preview', 'text-fuchsia-500');
+fetchVPCPreview();
+</script>
 
-        async function fetchIScoredPreview(roomId, targetId, colorClass) {
-            const primaryUrl = `https://virtualpinballchat.com/vpc/api/v1/iscored?roomId=${roomId}`;
-            try {
-                let response = await fetch(primaryUrl);
-                if (!response.ok) response = await fetch(PROXY + encodeURIComponent(primaryUrl));
-                const data = await response.json();
-                
-                // Fixed: Search for active table entry matching sub-page logic
-                const game = data.find(g => JSON.stringify(g).includes('game=')) || data[0];
-                const leader = game.scores.sort((a,b) => b.score - a.score)[0];
-                
-                document.getElementById(targetId).innerHTML = `
-                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Current Table</div>
-                    <div class="text-sm font-bold truncate mb-5">${game.longName || 'Table Unassigned'}</div>
-                    <div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
-                        <img src="${AVATAR_BASE}${leader.name.toLowerCase().replace(/\s+/g, '_')}.gif" class="w-8 h-8 rounded-full border border-white/10" onerror="this.src='https://via.placeholder.com/32?text=?'">
-                        <div class="overflow-hidden">
-                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">Leader</div>
-                            <div class="text-xs font-black truncate">${leader.name}</div>
-                        </div>
-                        <div class="ml-auto ${colorClass} font-mono text-xs font-black">${parseInt(leader.score).toLocaleString()}</div>
-                    </div>`;
-            } catch (e) {
-                document.getElementById(targetId).innerHTML = `<div class="text-gray-600 text-xs italic">Awaiting tournament sync...</div>`;
-            }
-        }
-
-        async function fetchVPCPreview() {
-            const primaryUrl = 'https://virtualpinballchat.com/vpc/api/v1/currentWeek?channelName=competition-corner';
-            try {
-                let res = await fetch(primaryUrl);
-                if (!res.ok) res = await fetch(PROXY + encodeURIComponent(primaryUrl));
-                const data = await res.json();
-                
-                // Fixed: Access the .table property directly from the week object
-                const leader = data.scores.sort((a,b) => b.score - a.score)[0];
-                
-                document.getElementById('vpc-preview').innerHTML = `
-                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Current Table</div>
-                    <div class="text-sm font-bold truncate mb-5">${data.table || 'Table Unassigned'}</div>
-                    <div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
-                        <img src="${leader.userAvatarUrl}" class="w-8 h-8 rounded-full border border-white/10" onerror="this.src='https://via.placeholder.com/32?text=?'">
-                        <div class="overflow-hidden">
-                            <div class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">Leader</div>
-                            <div class="text-xs font-black truncate">${leader.username}</div>
-                        </div>
-                        <div class="ml-auto text-indigo-400 font-mono text-xs font-black">${leader.score.toLocaleString()}</div>
-                    </div>`;
-            } catch (e) {
-                document.getElementById('vpc-preview').innerHTML = `<div class="text-gray-600 text-xs italic">Awaiting week sync...</div>`;
-            }
-        }
-
-        fetchIScoredPreview('700', 'ttd-preview', 'text-orange-500');
-        fetchIScoredPreview('1011', 'swl-preview', 'text-fuchsia-500');
-        fetchVPCPreview();
-    </script>
 </body>
 </html>
