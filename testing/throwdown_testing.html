@@ -11,8 +11,6 @@
         .medieval { font-family: 'MedievalSharp', cursive; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         .ttd-accent { border-color: #f97316; box-shadow: 0 0 15px rgba(249, 115, 22, 0.2); }
-        .achievement-card { transition: all 0.3s ease; }
-        .achievement-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.12); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -21,6 +19,7 @@
             <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white uppercase italic text-center">Thursday Throwdown</h1>
         </div>
     </header>
+
     <main class="container mx-auto px-4 mt-8 max-w-6xl">
         <div class="mb-6 text-center">
             <div class="inline-block glass px-6 py-2 rounded-full border border-orange-500/30">
@@ -28,15 +27,28 @@
                 <span id="event-period" class="text-sm font-bold text-orange-400 tracking-tight">Calculating...</span>
             </div>
         </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-5 space-y-6">
                 <div id="table-card" class="glass rounded-2xl p-6 ttd-accent min-h-[300px]"></div>
-                <div class="glass rounded-2xl p-6 text-center">
+                
+                <div class="glass rounded-2xl p-6">
                     <h3 class="text-xl font-bold text-orange-400 mb-4 tracking-tight">Rules & Submission</h3>
-                    <a href="https://virtualpinballchat.com/" target="_blank" class="block w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl text-center shadow-lg uppercase mb-4">VIEW ALL SCORES</a>
-                    <a href="https://www.iScored.info/SMAUG" target="_blank" class="block w-full border border-orange-500 text-orange-500 font-bold py-2 rounded-xl text-center">Submit to iScored</a>
+                    <ul class="text-left list-disc list-inside space-y-2 text-xs text-gray-300 mb-6">
+                        <li>Scores must be submitted via <strong>iScored</strong>.</li>
+                        <li>Manual submissions require a <strong>photo for verification</strong>.</li>
+                        <li>VPinStudio auto-submissions are permitted; verify your post.</li>
+                        <li>No table/script modifications affecting gameplay.</li>
+                        <li>Highest valid score at end of period wins.</li>
+                        <li>Deadline: <strong>Thursday at 2:00 PM Eastern Time</strong>.</li>
+                    </ul>
+                    <div class="space-y-3">
+                        <a href="https://iscored.info/?mode=public&user=smaug" target="_blank" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-center transition-colors shadow-sm uppercase text-sm">Submit Score</a>
+                        <button onclick="copyToClipboard('https://www.iScored.info/SMAUG', this)" class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-center transition-colors shadow-sm text-xs">Copy VPinStudio iScored Link</button>
+                    </div>
                 </div>
             </div>
+
             <div class="lg:col-span-7 space-y-6">
                 <div id="achievements" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 <div class="glass rounded-2xl overflow-hidden shadow-2xl">
@@ -45,6 +57,7 @@
             </div>
         </div>
     </main>
+
     <script>
         const AVATAR_BASE = "http://vpinhub.github.io/special-when-lit-leaderboard/img/";
         const ROOM_ID = "700";
@@ -73,11 +86,20 @@
             const cutoffDay = 4, cutoffHour = 14;
             const nowTZ = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
             let endDate = new Date(nowTZ); endDate.setHours(cutoffHour, 0, 0, 0);
-            const daysToAdd = (cutoffDay - nowTZ.getDay() + 7) % 7; endDate.setDate(endDate.getDate() + daysToAdd);
+            const daysToAdd = (cutoffDay - nowTZ.getDay() + 7) % 7;
+            endDate.setDate(endDate.getDate() + daysToAdd);
             if (daysToAdd === 0 && nowTZ.getHours() >= cutoffHour) endDate.setDate(endDate.getDate() + 7);
             let startDate = new Date(endDate); startDate.setDate(startDate.getDate() - 7);
             const options = { month: 'long', day: 'numeric' };
             document.getElementById('event-period').innerText = `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
+        }
+
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = 'Copied!';
+                setTimeout(() => { btnElement.innerText = originalText; }, 2000);
+            });
         }
 
         function processTournament(data) {
@@ -138,7 +160,7 @@
             if (comeback && comeback.comebackGrowth > 0) h += card("🔄", "Comeback Kid", comeback.name, `+${comeback.comebackGrowth.toLocaleString()} Growth`, "border-purple-500");
             if (improved) h += card("📈", "Most Improved", improved.name, `Gap: +${improved.improvementGap.toLocaleString()}`, "border-green-500");
             if (grinder) h += card("🕹️", "Most Played", grinder.name, `${grinder.scores.length} games`, "border-blue-500");
-            if (burns) h += card("☢️", "C. Montgomery Burns Award", burns.name, "Excellent!", "border-lime-500");
+            if (burns) h += card("☢️", "C. Montgomery Burns Award", burns.name, "Excellent!", "border-orange-500");
             document.getElementById('achievements').innerHTML = h;
         }
 
