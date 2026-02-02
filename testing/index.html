@@ -36,17 +36,10 @@
                     </div>
                     <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Thursday<br>Throwdown</h2>
                     <p class="text-gray-400 text-sm mb-8">Cutoff: Thu @ 2PM EST</p>
-                    
-                    <div id="ttd-preview" class="space-y-4">
-                        <div class="animate-pulse flex space-x-4">
-                            <div class="rounded-full bg-white/10 h-10 w-10"></div>
-                            <div class="flex-1 space-y-2 py-1"><div class="h-2 bg-white/10 rounded w-3/4"></div></div>
-                        </div>
-                    </div>
+                    <div id="ttd-preview" class="space-y-4"></div>
                 </div>
                 <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-orange-500 font-bold uppercase text-xs tracking-widest">
-                    <span>View Leaderboard</span>
-                    <span>→</span>
+                    <span>View Leaderboard</span><span>→</span>
                 </div>
             </a>
 
@@ -58,17 +51,10 @@
                     </div>
                     <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Special<br>When Lit</h2>
                     <p class="text-gray-400 text-sm mb-8">Cutoff: Sun @ 2PM EST</p>
-                    
-                    <div id="swl-preview" class="space-y-4">
-                        <div class="animate-pulse flex space-x-4">
-                            <div class="rounded-full bg-white/10 h-10 w-10"></div>
-                            <div class="flex-1 space-y-2 py-1"><div class="h-2 bg-white/10 rounded w-3/4"></div></div>
-                        </div>
-                    </div>
+                    <div id="swl-preview" class="space-y-4"></div>
                 </div>
                 <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-fuchsia-500 font-bold uppercase text-xs tracking-widest">
-                    <span>View Leaderboard</span>
-                    <span>→</span>
+                    <span>View Leaderboard</span><span>→</span>
                 </div>
             </a>
 
@@ -80,44 +66,26 @@
                     </div>
                     <h2 class="text-3xl font-black uppercase italic leading-none mb-2">Competition<br>Corner</h2>
                     <p class="text-gray-400 text-sm mb-8">Cutoff: Mon @ 12AM PST</p>
-                    
-                    <div id="vpc-preview" class="space-y-4">
-                        <div class="animate-pulse flex space-x-4">
-                            <div class="rounded-full bg-white/10 h-10 w-10"></div>
-                            <div class="flex-1 space-y-2 py-1"><div class="h-2 bg-white/10 rounded w-3/4"></div></div>
-                        </div>
-                    </div>
+                    <div id="vpc-preview" class="space-y-4"></div>
                 </div>
                 <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-indigo-500 font-bold uppercase text-xs tracking-widest">
-                    <span>View Leaderboard</span>
-                    <span>→</span>
+                    <span>View Leaderboard</span><span>→</span>
                 </div>
             </a>
-        </div>
-
-        <div class="mt-20 flex flex-wrap justify-center gap-6">
-            <a href="tournamenthelper/index.html" class="glass px-8 py-4 rounded-2xl hover:bg-white/5 transition font-bold uppercase tracking-widest text-xs">Table Search Tool</a>
-            <a href="https://virtualpinballchat.com" target="_blank" class="glass px-8 py-4 rounded-2xl hover:bg-white/5 transition font-bold uppercase tracking-widest text-xs">VPC Discord</a>
-            <a href="https://iscored.info" target="_blank" class="glass px-8 py-4 rounded-2xl hover:bg-white/5 transition font-bold uppercase tracking-widest text-xs">iScored Dashboard</a>
         </div>
     </main>
 
     <script>
         const AVATAR_BASE = "http://vpinhub.github.io/special-when-lit-leaderboard/img/";
+        const PROXY = "https://api.allorigins.win/raw?url=";
 
-        async function fetchPreviews() {
-            // Updated fetch logic to handle iScored nested JSON correctly
-            fetchIScoredData(`https://virtualpinballchat.com/vpc/api/v1/iscored?roomId=700`, 'ttd-preview', 'text-orange-500');
-            fetchIScoredData(`https://virtualpinballchat.com/vpc/api/v1/iscored?roomId=1011`, 'swl-preview', 'text-fuchsia-500');
-            fetchVPCPreview();
-        }
-
-        async function fetchIScoredData(url, targetId, colorClass) {
+        async function fetchIScoredPreview(roomId, targetId, colorClass) {
+            const url = `https://virtualpinballchat.com/vpc/api/v1/iscored?roomId=${roomId}`;
             try {
-                const res = await fetch(url);
+                // Using proxy to bypass potential CORS issues on the Hub page
+                const res = await fetch(PROXY + encodeURIComponent(url));
                 const data = await res.json();
-                // Accessing the game object correctly from the iScored data array
-                const game = data[0]; 
+                const game = data.find(g => g.scores && g.scores.length > 0) || data[0];
                 const leader = game.scores.sort((a,b) => b.score - a.score)[0];
                 
                 document.getElementById(targetId).innerHTML = `
@@ -130,16 +98,16 @@
                             <div class="text-xs font-black truncate">${leader.name}</div>
                         </div>
                         <div class="ml-auto ${colorClass} font-mono text-xs font-black">${parseInt(leader.score).toLocaleString()}</div>
-                    </div>
-                `;
+                    </div>`;
             } catch (e) {
-                document.getElementById(targetId).innerHTML = `<div class="text-gray-600 text-xs italic">Awaiting tournament start...</div>`;
+                document.getElementById(targetId).innerHTML = `<div class="text-gray-600 text-xs italic">Awaiting tournament sync...</div>`;
             }
         }
 
         async function fetchVPCPreview() {
+            const url = 'https://virtualpinballchat.com/vpc/api/v1/currentWeek?channelName=competition-corner';
             try {
-                const res = await fetch('https://virtualpinballchat.com/vpc/api/v1/currentWeek?channelName=competition-corner');
+                const res = await fetch(PROXY + encodeURIComponent(url));
                 const data = await res.json();
                 const leader = data.scores.sort((a,b) => b.score - a.score)[0];
                 
@@ -153,14 +121,16 @@
                             <div class="text-xs font-black truncate">${leader.username}</div>
                         </div>
                         <div class="ml-auto text-indigo-400 font-mono text-xs font-black">${leader.score.toLocaleString()}</div>
-                    </div>
-                `;
+                    </div>`;
             } catch (e) {
                 document.getElementById('vpc-preview').innerHTML = `<div class="text-gray-600 text-xs italic">Awaiting week sync...</div>`;
             }
         }
 
-        fetchPreviews();
+        // Initialize all previews
+        fetchIScoredPreview('700', 'ttd-preview', 'text-orange-500');
+        fetchIScoredPreview('1011', 'swl-preview', 'text-fuchsia-500');
+        fetchVPCPreview();
     </script>
 </body>
 </html>
