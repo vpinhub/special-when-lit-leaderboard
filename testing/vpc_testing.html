@@ -32,9 +32,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-5 space-y-6">
-                <div id="table-card" class="glass rounded-2xl p-6 vpc-accent min-h-[300px]">
-                    <div class="flex items-center justify-center h-48 text-gray-500 italic">Loading Table Data...</div>
-                </div>
+                <div id="table-card" class="glass rounded-2xl p-6 vpc-accent min-h-[300px]"></div>
                 
                 <div class="glass rounded-2xl p-6">
                     <h3 class="text-xl font-bold text-indigo-400 mb-6 tracking-tight uppercase border-b border-white/10 pb-2">Rules & Submission</h3>
@@ -96,7 +94,7 @@
 
     <script>
         const VPS_DATA = "https://raw.githubusercontent.com/VirtualPinballSpreadsheet/vps-db/main/db/vpsdb.json";
-        const VPC_API = 'https://virtualpinballchat.com/vpc/api/v1/weeksByChannelName';
+        const VPC_API = 'https://virtualpinballchat.com/vpc/api/v1/currentWeek?channelName=competition-corner';
         let vpsDB = [];
 
         async function init() {
@@ -108,52 +106,45 @@
                 const dbRes = await fetch(VPS_DATA); vpsDB = await dbRes.json();
                 const response = await fetch(VPC_API);
                 if (!response.ok) throw new Error();
-                const allChannelsData = await response.json();
-                
-                const channel = allChannelsData.find(c => c.channelName === "competition-corner");
-                const currentWeek = channel.weeks.find(w => w.isArchived === false);
+                const currentWeek = await response.json();
                 
                 if (currentWeek) processVPCData(currentWeek);
-            } catch (err) { console.error("Initialization Error:", err); }
+            } catch (err) { 
+                console.error("Initialization Error:", err); 
+            }
         }
 
         function calculateVPCPeriod() {
-            // Deadline: Monday (1), 0:00 (Midnight) PST
             const cutoffDay = 1, cutoffHour = 0;
             const nowPST = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
             let endDate = new Date(nowPST); endDate.setHours(cutoffHour, 0, 0, 0);
-            
             const daysToAdd = (cutoffDay - nowPST.getDay() + 7) % 7;
             endDate.setDate(endDate.getDate() + daysToAdd);
             if (daysToAdd === 0 && nowPST.getHours() >= cutoffHour) endDate.setDate(endDate.getDate() + 7);
-            
             let startDate = new Date(endDate); startDate.setDate(startDate.getDate() - 7);
             const options = { month: 'long', day: 'numeric' };
             document.getElementById('event-period').innerText = `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
         }
 
         function processVPCData(weekData) {
-            const scores = weekData.scores.sort((a, b) => b.score - a.score);
-            
-            // Map VPC scores to the format used by the rendering functions
+            const scores = (weekData.scores || []).sort((a, b) => b.score - a.score);
             const playerStats = scores.map(s => ({
                 name: s.username,
                 high: s.score,
                 avatar: s.userAvatarUrl,
-                scores: [s.score],
-                avg: s.score,
-                improvementGap: 0,
-                comebackGrowth: 0
+                scores: [s.score]
             }));
 
             renderLeaderboard(playerStats);
             renderAdvancedAchievements(playerStats);
-            
-            // VPC API current week typically contains vpsId and tableId
-            renderTable(weekData.vpsId, weekData.tableId, weekData.tableDisplayName);
+            renderTable(weekData.vpsId, weekData.table, weekData.versionNumber);
         }
 
         function renderLeaderboard(players) {
+            if (players.length === 0) {
+                document.getElementById('leaderboard').innerHTML = '<div class="p-8 text-center text-gray-500 italic">No scores posted yet this week.</div>';
+                return;
+            }
             document.getElementById('leaderboard').innerHTML = players.map((p, i) => `
                 <div class="flex items-center justify-between px-6 py-4 hover:bg-white/5 transition">
                     <div class="flex items-center gap-4">
@@ -195,15 +186,13 @@
                     <div class="text-[10px] text-gray-500">${detail}</div>
                 </div>`;
             
-            // Note: VPC API week summary doesn't provide timestamps for pioneer/most-played stats.
-            // Rendering static fun awards based on final standings.
             document.getElementById('achievements').innerHTML = `
                 ${card("🏆", "Front Runner", winner.name, "Ranked #1", "border-indigo-500")}
                 ${card("☢️", "C. Montgomery Burns Award", burns.name, "Excellent!", "border-indigo-500")}
             `;
         }
 
-        function renderTable(vpsId, tableId, displayName) {
+        function renderTable(vpsId, tableName, version) {
             const table = vpsDB.find(t => t.id === vpsId);
             const img = table?.b2sFiles?.[0]?.imgUrl || table?.tableFiles?.[0]?.imgUrl || "https://via.placeholder.com/400x200";
             
@@ -211,13 +200,12 @@
                 <div class="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl">
                     <img src="${img}" class="w-full h-52 object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
-                        <h4 class="text-2xl font-black italic uppercase tracking-tighter">${table ? table.name : displayName}</h4>
-                        <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">${table ? table.manufacturer + ' • ' + table.year : 'VPC Competition Table'}</p>
+                        <h4 class="text-2xl font-black italic uppercase tracking-tighter">${tableName}</h4>
+                        <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">${version ? 'v' + version : ''} • ${table ? table.manufacturer : 'VPC Competition'}</p>
                     </div>
                 </div>
-                <a href="https://vpinhub.github.io/tournamenthelper/?tableId=${vpsId || ''}&releaseId=${tableId || ''}&vpc" target="_blank" class="block w-full bg-white text-black text-center py-4 rounded-xl font-black text-xs hover:bg-indigo-500 hover:text-white transition mt-4 uppercase">View Table Details</a>`;
+                <a href="https://vpinhub.github.io/tournamenthelper/?tableId=${vpsId || ''}&vpc" target="_blank" class="block w-full bg-white text-black text-center py-4 rounded-xl font-black text-xs hover:bg-indigo-500 hover:text-white transition mt-4 uppercase">View Table Details</a>`;
         }
-
         init();
     </script>
 </body>
