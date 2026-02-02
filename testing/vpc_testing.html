@@ -13,6 +13,7 @@
         .vpc-accent { border-color: #6366f1; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
         .achievement-card { transition: all 0.3s ease; }
         .achievement-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.12); }
+        .btn-disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -32,7 +33,9 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-5 space-y-6">
-                <div id="table-card" class="glass rounded-2xl p-6 vpc-accent min-h-[300px]"></div>
+                <div id="table-card" class="glass rounded-2xl p-6 vpc-accent min-h-[300px]">
+                    <div class="flex items-center justify-center h-48 text-gray-500 italic">Loading Week Data...</div>
+                </div>
                 
                 <div class="glass rounded-2xl p-6">
                     <h3 class="text-xl font-bold text-indigo-400 mb-6 tracking-tight uppercase border-b border-white/10 pb-2">Rules & Submission</h3>
@@ -103,7 +106,10 @@
             if (urlParams.has('showachievements')) { document.getElementById('achievement-zone').classList.remove('hidden'); }
             
             try {
-                const dbRes = await fetch(VPS_DATA); vpsDB = await dbRes.json();
+                // Fetch VPS DB first to ensure we can look up IDs immediately
+                const dbRes = await fetch(VPS_DATA); 
+                vpsDB = await dbRes.json();
+
                 const response = await fetch(VPC_API);
                 if (!response.ok) throw new Error();
                 const currentWeek = await response.json();
@@ -141,11 +147,12 @@
         }
 
         function renderLeaderboard(players) {
+            const container = document.getElementById('leaderboard');
             if (players.length === 0) {
-                document.getElementById('leaderboard').innerHTML = '<div class="p-8 text-center text-gray-500 italic">No scores posted yet this week.</div>';
+                container.innerHTML = '<div class="p-8 text-center text-gray-500 italic">No scores posted yet this week.</div>';
                 return;
             }
-            document.getElementById('leaderboard').innerHTML = players.map((p, i) => `
+            container.innerHTML = players.map((p, i) => `
                 <div class="flex items-center justify-between px-6 py-4 hover:bg-white/5 transition">
                     <div class="flex items-center gap-4">
                         <span class="w-6 font-black text-xl italic ${i < 3 ? 'text-indigo-400' : 'text-gray-700'}">${i+1}</span>
@@ -192,19 +199,31 @@
             `;
         }
 
-        function renderTable(vpsId, tableName, version) {
-            const table = vpsDB.find(t => t.id === vpsId);
-            const img = table?.b2sFiles?.[0]?.imgUrl || table?.tableFiles?.[0]?.imgUrl || "https://via.placeholder.com/400x200";
+        function renderTable(releaseId, tableName, version) {
+            // Find parent table by searching all tableFiles for the releaseId
+            const parentTable = vpsDB.find(t => 
+                (t.tableFiles || []).some(f => f.id === releaseId)
+            );
+
+            const tableId = parentTable ? parentTable.id : '';
+            const img = parentTable?.b2sFiles?.[0]?.imgUrl || parentTable?.tableFiles?.[0]?.imgUrl || "https://via.placeholder.com/400x200";
             
+            const btnClass = tableId ? "" : "btn-disabled";
+            const btnText = tableId ? "View Table Details" : "Searching Database...";
+
             document.getElementById('table-card').innerHTML = `
                 <div class="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-                    <img src="${img}" class="w-full h-52 object-cover">
+                    <img src="${img}" class="w-full h-52 object-cover" onerror="this.src='https://via.placeholder.com/400x200?text=Image+Not+Found'">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                         <h4 class="text-2xl font-black italic uppercase tracking-tighter">${tableName}</h4>
-                        <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">${version ? 'v' + version : ''} • ${table ? table.manufacturer : 'VPC Competition'}</p>
+                        <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">${version ? 'v' + version : ''} • ${parentTable ? parentTable.manufacturer : 'VPC Competition'}</p>
                     </div>
                 </div>
-                <a href="https://vpinhub.github.io/tournamenthelper/?tableId=${vpsId || ''}&vpc" target="_blank" class="block w-full bg-white text-black text-center py-4 rounded-xl font-black text-xs hover:bg-indigo-500 hover:text-white transition mt-4 uppercase">View Table Details</a>`;
+                <a id="details-btn" href="https://vpinhub.github.io/tournamenthelper/?tableId=${tableId}&releaseId=${releaseId}&vpc" 
+                   target="_blank" 
+                   class="block w-full bg-white text-black text-center py-4 rounded-xl font-black text-xs hover:bg-indigo-500 hover:text-white transition mt-4 uppercase ${btnClass}">
+                   ${btnText}
+                </a>`;
         }
         init();
     </script>
