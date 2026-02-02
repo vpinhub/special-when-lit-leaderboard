@@ -31,15 +31,34 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-5 space-y-6">
                 <div id="table-card" class="glass rounded-2xl p-6 ttd-accent min-h-[300px]"></div>
+                
                 <div class="glass rounded-2xl p-6">
-                    <h3 class="text-xl font-bold text-orange-400 mb-4 tracking-tight uppercase">Rules & Submission</h3>
-                    <ul class="text-left list-disc list-inside space-y-2 text-xs text-gray-300 mb-6">
-                        <li>All scores must be submitted via <strong>iScored</strong>.</li>
-                        <li>Manual submissions to iScored require a <strong>photo for verification</strong>.</li>
-                        <li>VPinStudio auto-submissions are permitted, but players are responsible for <strong>verifying their score has posted</strong>.</li>
-                        <li>No table or script modifications that affect gameplay are allowed.</li>
-                        <li>The player with the highest valid score at the end of the event period wins.</li>
-                        <li>The submission deadline is <strong>Thursday at 2:00 PM Eastern Time</strong>.</li>
+                    <h3 class="text-xl font-bold text-orange-400 mb-6 tracking-tight uppercase border-b border-white/10 pb-2">Rules & Submission</h3>
+                    <ul class="text-left space-y-4 text-sm leading-relaxed text-gray-200 mb-8 list-none">
+                        <li class="flex gap-3">
+                            <span class="text-orange-500">•</span>
+                            <span>All scores must be submitted via <strong>iScored</strong>.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-orange-500">•</span>
+                            <span>Manual submissions to iScored require a <strong>photo for verification</strong>.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-orange-500">•</span>
+                            <span>VPinStudio auto-submissions are permitted, but players are responsible for <strong>verifying their score has posted</strong>.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-orange-500">•</span>
+                            <span>No table or script modifications that affect gameplay are allowed.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-orange-500">•</span>
+                            <span>The player with the highest valid score at the end of the event period wins.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-orange-500">•</span>
+                            <span>The submission deadline is <strong>Thursday at 2:00 PM Eastern Time</strong>.</span>
+                        </li>
                     </ul>
                     <div class="space-y-3">
                         <a href="https://iscored.info/?mode=public&user=smaug" target="_blank" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-center transition-colors shadow-sm uppercase text-sm">Submit Score</a>
@@ -153,6 +172,7 @@
             const grinder = [...players].sort((a,b) => b.scores.length - a.scores.length)[0];
             const comeback = [...players].sort((a,b) => b.comebackGrowth - a.comebackGrowth)[0];
             const burns = players[Math.floor(Math.random() * players.length)];
+
             document.getElementById('winner-banner').innerHTML = `
                 <div class="glass p-6 rounded-2xl border-2 border-yellow-500 flex items-center justify-between shadow-[0_0_20px_rgba(234,179,8,0.2)]">
                     <div class="flex items-center gap-6">
@@ -170,12 +190,14 @@
                         <div class="text-2xl font-mono font-bold text-yellow-400">${winner.high.toLocaleString()}</div>
                     </div>
                 </div>`;
+
             const card = (icon, title, name, detail, color) => `
                 <div class="glass p-4 rounded-xl border-l-4 ${color} achievement-card">
                     <div class="medieval text-[10px] text-gray-400 uppercase">${icon} ${title}</div>
                     <div class="font-bold text-sm uppercase italic text-white">${name}</div>
                     <div class="text-[10px] text-gray-500">${detail}</div>
                 </div>`;
+            
             let h = "";
             if (pioneer.name !== "N/A") h += card("🔫", "Fast Draw", pioneer.name, `First: ${new Date(pioneer.dateStr).toLocaleDateString()}`, "border-red-500");
             if (shooter) h += card("🎯", "Sharpshooter", shooter.name, `Avg: ${Math.round(shooter.avg).toLocaleString()}`, "border-orange-500");
